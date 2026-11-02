@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block titulo %}Fotos{% endblock %}
+{% block contenido %}
+<h1>Galería de fotos</h1>
+<div class="galeria">
+{% for foto in fotos %}
+    <div class="tarjeta">
+        <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+        <p>{{ foto.restaurante.nombre }}</p>
+        <p>♥ {{ foto.n_likes }} · 💬 {{ foto.n_comentarios }} · {{ foto.get_tipo_display }}</p>
+        <p>por <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a></p>
+    </div>
+{% empty %}
+    <p>No hay fotos registradas.</p>
+{% endfor %}
+</div>
+<a href="{% url 'index' %}">Volver al inicio</a>
+{% endblock %}

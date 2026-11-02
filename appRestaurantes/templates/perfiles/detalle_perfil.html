@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block titulo %}Perfil de {{ perfil }}{% endblock %}
+{% block contenido %}
+<div class="cabecera">
+    {% if perfil.foto_url %}<img class="avatar" src="{{ perfil.foto_url }}" alt="Foto de {{ perfil }}">{% endif %}
+    <div>
+        <h1>{{ perfil }}</h1>
+        {% if perfil.biografia %}<p>{{ perfil.biografia }}</p>{% endif %}
+        <p>{% if perfil.ciudad %}<a href="{% url 'detalle_ciudad' perfil.ciudad.id %}">{{ perfil.ciudad }}</a> · {% endif %}Miembro desde {{ perfil.fecha_alta }}</p>
+        <p>{{ resenas.count }} reseñas · {{ fotos.count }} fotos</p>
+    </div>
+</div>
+
+<h2>Amigos y seguidores</h2>
+<p><strong>Amigos:</strong> {% for p in amigos %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}ninguno{% endfor %}</p>
+<p><strong>Siguiendo:</strong> {% for p in siguiendo %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}a nadie{% endfor %}</p>
+<p><strong>Seguidores:</strong> {% for p in seguidores %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}ninguno{% endfor %}</p>
+
+<h2>Mis reseñas</h2>
+{% for resena in resenas %}
+<div class="tarjeta">
+    <h3><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
+    <p><a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a>
+       · <span class="estrellas">{{ resena.puntuacion }} / 5 ★</span></p>
+</div>
+{% empty %}
+<p>Todavía no ha escrito reseñas.</p>
+{% endfor %}
+
+<h2>Mis fotos</h2>
+<div class="galeria">
+{% for foto in fotos %}
+    <div class="tarjeta">
+        <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+        <p>{{ foto.restaurante.nombre }} · ♥ {{ foto.likes.count }}</p>
+    </div>
+{% empty %}
+    <p>Todavía no ha subido fotos.</p>
+{% endfor %}
+</div>
+
+<h2>Fotos que me gustan</h2>
+<div class="galeria">
+{% for foto in fotos_gustadas %}
+    <div class="tarjeta">
+        <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+        <p>{{ foto.restaurante.nombre }}</p>
+    </div>
+{% empty %}
+    <p>Todavía no ha dado likes.</p>
+{% endfor %}
+</div>
+
+<p><a href="{% url 'lista_perfiles' %}">Volver a los usuarios</a></p>
+{% endblock %}

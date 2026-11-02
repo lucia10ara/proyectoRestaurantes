@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ ciudad.nombre }}{% endblock %}
+{% block contenido %}
+<h1>{{ ciudad.nombre }}</h1>
+{% if ciudad.comunidad %}<p>{{ ciudad.comunidad }}</p>{% endif %}
+<h2>Restaurantes</h2>
+{% for r in restaurantes %}
+<div class="tarjeta">
+    <h3><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h3>
+    <p>{{ r.tipo_cocina }}{% if r.media %} · <span class="estrellas">★ {{ r.media|floatformat:1 }} / 5</span>{% endif %}</p>
+</div>
+{% empty %}
+<p>Todavía no hay restaurantes en esta ciudad.</p>
+{% endfor %}
+<p><a href="{% url 'lista_ciudades' %}">Volver al listado de ciudades</a></p>
+{% endblock %}

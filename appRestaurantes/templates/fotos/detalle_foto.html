@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block titulo %}Foto de {{ foto.restaurante.nombre }}{% endblock %}
+{% block contenido %}
+<h1>Foto de {{ foto.restaurante.nombre }}</h1>
+<img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}">
+{% if foto.pie %}<p>{{ foto.pie }}</p>{% endif %}
+<p>♥ {{ n_likes }} · {{ foto.get_tipo_display }} · por <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a>, {{ foto.fecha }}</p>
+<p>Restaurante: <a href="{% url 'detalle_restaurante' foto.restaurante.id %}">{{ foto.restaurante.nombre }}</a></p>
+{% if foto.resena %}
+<p>Reseña asociada: <a href="{% url 'detalle_resena' foto.resena.id %}">{{ foto.resena.titulo }}</a></p>
+{% endif %}
+
+<h2>Les gusta a</h2>
+<p>{% for p in quienes_like %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Todavía a nadie.{% endfor %}</p>
+
+<h2>Comentarios</h2>
+{% for c in comentarios %}
+<div class="tarjeta">
+    <strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}
+    <br><small>{{ c.fecha|date:"d/m/Y H:i" }}</small>
+</div>
+{% empty %}
+<p>Todavía no hay comentarios.</p>
+{% endfor %}
+
+<p><a href="{% url 'lista_fotos' %}">Volver a la galería</a></p>
+{% endblock %}

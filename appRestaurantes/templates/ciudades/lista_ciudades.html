@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block titulo %}Ciudades{% endblock %}
+{% block contenido %}
+<h1>Ciudades</h1>
+{% for c in ciudades %}
+<div class="tarjeta">
+    <h2><a href="{% url 'detalle_ciudad' c.id %}">{{ c.nombre }}</a></h2>
+    <p>{% if c.comunidad %}{{ c.comunidad }} · {% endif %}{{ c.n_restaurantes }} restaurantes</p>
+</div>
+{% empty %}
+<p>No hay ciudades registradas.</p>
+{% endfor %}
+<a href="{% url 'index' %}">Volver al inicio</a>
+{% endblock %}

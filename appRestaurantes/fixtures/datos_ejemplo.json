@@ -1,0 +1,579 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "ane",
+      "first_name": "Ane",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "mikel",
+      "first_name": "Mikel",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "jon",
+      "first_name": "Jon",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "username": "lucia",
+      "first_name": "Lucia",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "appRestaurantes.ciudad",
+    "pk": 1,
+    "fields": {
+      "nombre": "Bilbao",
+      "comunidad": "País Vasco"
+    }
+  },
+  {
+    "model": "appRestaurantes.ciudad",
+    "pk": 2,
+    "fields": {
+      "nombre": "Madrid",
+      "comunidad": "Comunidad de Madrid"
+    }
+  },
+  {
+    "model": "appRestaurantes.ciudad",
+    "pk": 3,
+    "fields": {
+      "nombre": "Barcelona",
+      "comunidad": "Cataluña"
+    }
+  },
+  {
+    "model": "appRestaurantes.ciudad",
+    "pk": 4,
+    "fields": {
+      "nombre": "Sevilla",
+      "comunidad": "Andalucía"
+    }
+  },
+  {
+    "model": "appRestaurantes.alergeno",
+    "pk": 1,
+    "fields": {
+      "nombre": "Gluten"
+    }
+  },
+  {
+    "model": "appRestaurantes.alergeno",
+    "pk": 2,
+    "fields": {
+      "nombre": "Lactosa"
+    }
+  },
+  {
+    "model": "appRestaurantes.alergeno",
+    "pk": 3,
+    "fields": {
+      "nombre": "Frutos secos"
+    }
+  },
+  {
+    "model": "appRestaurantes.alergeno",
+    "pk": 4,
+    "fields": {
+      "nombre": "Marisco"
+    }
+  },
+  {
+    "model": "appRestaurantes.alergeno",
+    "pk": 5,
+    "fields": {
+      "nombre": "Huevo"
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 1,
+    "fields": {
+      "usuario": 1,
+      "foto_url": "https://picsum.photos/seed/perfilane/200/200",
+      "biografia": "Me encantan los pintxos y el vermut.",
+      "ciudad": 1,
+      "fecha_alta": "2026-09-15",
+      "amigos": [
+        2,
+        3
+      ],
+      "siguiendo": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 2,
+    "fields": {
+      "usuario": 2,
+      "foto_url": "https://picsum.photos/seed/perfilmikel/200/200",
+      "biografia": "Parrilla y buen vino.",
+      "ciudad": 1,
+      "fecha_alta": "2026-09-15",
+      "amigos": [
+        1
+      ],
+      "siguiendo": [
+        1,
+        3
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 3,
+    "fields": {
+      "usuario": 3,
+      "foto_url": "https://picsum.photos/seed/perfiljon/200/200",
+      "biografia": "Siempre buscando el mejor pintxo de gambas.",
+      "ciudad": 1,
+      "fecha_alta": "2026-09-15",
+      "amigos": [
+        1
+      ],
+      "siguiendo": []
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 4,
+    "fields": {
+      "usuario": 4,
+      "foto_url": "https://picsum.photos/seed/perfillucia/200/200",
+      "biografia": "Probando todos los sitios de Bilbao.",
+      "ciudad": 1,
+      "fecha_alta": "2026-09-15",
+      "amigos": [],
+      "siguiendo": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 1,
+    "fields": {
+      "nombre": "Gure Toki",
+      "tipo_cocina": "Pintxos",
+      "direccion": "Plaza Nueva 12",
+      "descripcion": "Gure Toki: un clasico de Casco Viejo para disfrutar de pintxos en Bilbao.",
+      "ciudad": 1,
+      "admite_ninos": true,
+      "admite_perros": true,
+      "opciones_sin_alergenos": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 2,
+    "fields": {
+      "nombre": "Cafe Bar Bilbao",
+      "tipo_cocina": "Pintxos",
+      "direccion": "Plaza Nueva 6",
+      "descripcion": "Cafe Bar Bilbao: un clasico de Casco Viejo para disfrutar de pintxos en Bilbao.",
+      "ciudad": 1,
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 3,
+    "fields": {
+      "nombre": "Etxebarri Bilbao",
+      "tipo_cocina": "Parrilla",
+      "direccion": "Gran Via 30",
+      "descripcion": "Etxebarri Bilbao: un clasico de Abando para disfrutar de parrilla en Bilbao.",
+      "ciudad": 1,
+      "admite_ninos": false,
+      "admite_perros": true,
+      "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 4,
+    "fields": {
+      "nombre": "Zuria Sushi",
+      "tipo_cocina": "Japonesa",
+      "direccion": "Alameda Urquijo 20",
+      "descripcion": "Zuria Sushi: un clasico de Indautxu para disfrutar de japonesa en Bilbao.",
+      "ciudad": 1,
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 5,
+    "fields": {
+      "nombre": "La Ribera Asador",
+      "tipo_cocina": "Asador",
+      "direccion": "Calle Ribera 5",
+      "descripcion": "La Ribera Asador: un clasico de Ribera para disfrutar de asador en Bilbao.",
+      "ciudad": 1,
+      "admite_ninos": false,
+      "admite_perros": false,
+      "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 6,
+    "fields": {
+      "ciudad": 2,
+      "nombre": "Casa Lucio",
+      "tipo_cocina": "Cocina castellana",
+      "direccion": "Cava Baja 35",
+      "descripcion": "Casa Lucio: un clásico de Madrid.",
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1,
+        5
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 7,
+    "fields": {
+      "ciudad": 3,
+      "nombre": "Can Culleretes",
+      "tipo_cocina": "Catalana",
+      "direccion": "Quintana 5",
+      "descripcion": "Can Culleretes: un clásico de Barcelona.",
+      "admite_ninos": true,
+      "admite_perros": true,
+      "opciones_sin_alergenos": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 8,
+    "fields": {
+      "ciudad": 4,
+      "nombre": "El Rinconcillo",
+      "tipo_cocina": "Tapas",
+      "direccion": "Gerona 40",
+      "descripcion": "El Rinconcillo: un clásico de Sevilla.",
+      "admite_ninos": false,
+      "admite_perros": true,
+      "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 1,
+    "fields": {
+      "restaurante": 1,
+      "autor": 1,
+      "puntuacion": 5,
+      "titulo": "Pintxos de diez",
+      "texto": "Pintxos excelentes y buen ambiente.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 2,
+    "fields": {
+      "restaurante": 1,
+      "autor": 2,
+      "puntuacion": 4,
+      "titulo": "Muy buen sitio",
+      "texto": "Algo de cola pero merece la pena.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 3,
+    "fields": {
+      "restaurante": 2,
+      "autor": 3,
+      "puntuacion": 5,
+      "titulo": "El mejor pintxo de gambas",
+      "texto": "Imprescindible si vienes a Bilbao.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 4,
+    "fields": {
+      "restaurante": 3,
+      "autor": 4,
+      "puntuacion": 4,
+      "titulo": "Carne en su punto",
+      "texto": "Producto de calidad, precio algo alto.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 5,
+    "fields": {
+      "restaurante": 4,
+      "autor": 1,
+      "puntuacion": 3,
+      "titulo": "Correcto",
+      "texto": "Sushi fresco pero el servicio fue lento.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 6,
+    "fields": {
+      "restaurante": 5,
+      "autor": 2,
+      "puntuacion": 5,
+      "titulo": "Chuleton espectacular",
+      "texto": "Volveremos seguro.",
+      "fecha": "2026-10-01"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 7,
+    "fields": {
+      "restaurante": 6,
+      "autor": 3,
+      "puntuacion": 4,
+      "titulo": "Cocido de los de siempre",
+      "texto": "Raciones grandes y trato muy cercano.",
+      "fecha": "2026-10-05"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 8,
+    "fields": {
+      "restaurante": 8,
+      "autor": 4,
+      "puntuacion": 5,
+      "titulo": "Tapas de toda la vida",
+      "texto": "Muy auténtico, ideal para ir con el perro en la terraza.",
+      "fecha": "2026-10-06"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 1,
+    "fields": {
+      "restaurante": 1,
+      "resena": 1,
+      "autor": 1,
+      "tipo": "comida",
+      "url": "https://picsum.photos/seed/pintxo1/600/400",
+      "pie": "Pintxos de la barra",
+      "likes": [
+        2,
+        3,
+        4
+      ],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 2,
+    "fields": {
+      "restaurante": 1,
+      "resena": 2,
+      "autor": 2,
+      "tipo": "amigos",
+      "url": "https://picsum.photos/seed/amigos1/600/400",
+      "pie": "Cena con amigos",
+      "likes": [
+        1,
+        3
+      ],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 3,
+    "fields": {
+      "restaurante": 2,
+      "resena": 3,
+      "autor": 3,
+      "tipo": "comida",
+      "url": "https://picsum.photos/seed/gambas/600/400",
+      "pie": "La gamba famosa",
+      "likes": [
+        1,
+        2,
+        4
+      ],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 4,
+    "fields": {
+      "restaurante": 3,
+      "resena": 4,
+      "autor": 4,
+      "tipo": "comida",
+      "url": "https://picsum.photos/seed/carne/600/400",
+      "pie": "Solomillo",
+      "likes": [
+        2
+      ],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 5,
+    "fields": {
+      "restaurante": 4,
+      "resena": null,
+      "autor": 1,
+      "tipo": "local",
+      "url": "https://picsum.photos/seed/sushi/600/400",
+      "pie": "El local por dentro",
+      "likes": [],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 6,
+    "fields": {
+      "restaurante": 5,
+      "resena": 6,
+      "autor": 2,
+      "tipo": "comida",
+      "url": "https://picsum.photos/seed/chuleton/600/400",
+      "pie": "Chuleton",
+      "likes": [
+        1,
+        3,
+        4
+      ],
+      "fecha": "2026-10-02"
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 1,
+    "fields": {
+      "foto": 1,
+      "autor": 2,
+      "texto": "Que buena pinta!",
+      "fecha": "2026-10-03T12:00:00Z",
+      "resena": null
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 2,
+    "fields": {
+      "foto": 1,
+      "autor": 3,
+      "texto": "Hay que repetir",
+      "fecha": "2026-10-03T12:00:00Z",
+      "resena": null
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 3,
+    "fields": {
+      "foto": 3,
+      "autor": 1,
+      "texto": "La mejor gamba de Bilbao",
+      "fecha": "2026-10-03T12:00:00Z",
+      "resena": null
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 4,
+    "fields": {
+      "foto": 3,
+      "autor": 4,
+      "texto": "Totalmente de acuerdo",
+      "fecha": "2026-10-03T12:00:00Z",
+      "resena": null
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 5,
+    "fields": {
+      "foto": 6,
+      "autor": 3,
+      "texto": "Que punto de carne",
+      "fecha": "2026-10-03T12:00:00Z",
+      "resena": null
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 6,
+    "fields": {
+      "foto": null,
+      "resena": 7,
+      "autor": 1,
+      "texto": "Apuntado para mi viaje a Madrid",
+      "fecha": "2026-10-07T10:00:00Z"
+    }
+  }
+]

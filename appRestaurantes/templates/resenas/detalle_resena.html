@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ resena.titulo }}{% endblock %}
+{% block contenido %}
+<h1>{{ resena.titulo }}</h1>
+<p>
+    Restaurante: <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a>
+</p>
+<p class="estrellas">{{ resena.puntuacion }} / 5 ★</p>
+<p>{{ resena.texto }}</p>
+<p><em>por <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>, {{ resena.fecha }}</em></p>
+
+{% if fotos %}
+<h2>Fotos de esta reseña</h2>
+<div class="galeria">
+{% for foto in fotos %}
+    <div class="tarjeta">
+        <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+        <p>♥ {{ foto.likes.count }}</p>
+    </div>
+{% endfor %}
+</div>
+{% endif %}
+
+<h2>Comentarios</h2>
+{% for c in comentarios %}
+<div class="tarjeta"><strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}</div>
+{% empty %}
+<p>Todavía no hay comentarios.</p>
+{% endfor %}
+
+<p><a href="{% url 'lista_resenas' %}">Volver al listado de reseñas</a></p>
+{% endblock %}
