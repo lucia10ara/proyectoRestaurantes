@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}Bilbao Gastro{% endblock %}</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 1rem; color: #222; }
-        nav { background: #8b1a1a; padding: .7rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; }
-        nav a { color: #fff; margin-right: 1rem; text-decoration: none; font-weight: bold; }
-        .tarjeta { border: 1px solid #ddd; border-radius: 8px; padding: .8rem 1rem; margin-bottom: 1rem; }
-        .estrellas { color: #e6a700; }
-        img { max-width: 100%; border-radius: 6px; }
-        .galeria { display: flex; flex-wrap: wrap; gap: 1rem; }
-        .galeria .tarjeta { width: 250px; }
-        .avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; }
-        .cabecera { display: flex; align-items: center; gap: 1rem; }
-    </style>
 </head>
+
 <body>
-    <nav>
-        <a href="{% url 'index' %}">Inicio</a>
-        <a href="{% url 'lista_ciudades' %}">Ciudades</a>
-        <a href="{% url 'lista_restaurantes' %}">Restaurantes</a>
-        <a href="{% url 'lista_resenas' %}">Reseñas</a>
-        <a href="{% url 'lista_fotos' %}">Fotos</a>
-        <a href="{% url 'lista_perfiles' %}">Perfiles</a>
+
+    <nav> <!-- barra de navegación para todas las páginas (la extienden desde su html) -->
+        <a href="{% url 'index' %}">Inicio</a> |
+        <a href="{% url 'lista_ciudades' %}">Ciudades</a> |
+        <a href="{% url 'lista_restaurantes' %}">Restaurantes</a> |
+        <a href="{% url 'lista_resenas' %}">Reseñas</a> |
+        <a href="{% url 'lista_fotos' %}">Fotos</a> |
+        <a href="{% url 'lista_perfiles' %}">Perfiles</a> |
         <a href="/admin/">Administración</a>
     </nav>
+
+    <hr>
+
+    <!-- aquí se mete el contenido de cada página -->
     {% block contenido %}{% endblock %}
+
 </body>
+
 </html>

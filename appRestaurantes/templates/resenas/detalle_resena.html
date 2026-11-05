@@ -1,32 +1,54 @@
 {% extends 'base.html' %}
-{% block titulo %}{{ resena.titulo }}{% endblock %}
-{% block contenido %}
-<h1>{{ resena.titulo }}</h1>
-<p>
-    Restaurante: <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a>
-</p>
-<p class="estrellas">{{ resena.puntuacion }} / 5 ★</p>
-<p>{{ resena.texto }}</p>
-<p><em>por <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>, {{ resena.fecha }}</em></p>
 
-{% if fotos %}
+{% block titulo %}{{ resena.titulo }}{% endblock %}
+
+{% block contenido %}
+
+<h1>{{ resena.titulo }}</h1>
+
+<p><strong>Restaurante:</strong> <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a></p>
+
+<p><strong>Puntuación:</strong> {{ resena.puntuacion }} / 5 ★</p>
+
+<p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>, {{ resena.fecha }}</p>
+
+<hr>
+
+<p>{{ resena.texto }}</p>
+
+
+<!-- las fotos son opcionales, solo se muestra este apartado si hay alguna -->
+{% if resena.fotos.all %}
+
+<hr>
+
 <h2>Fotos de esta reseña</h2>
-<div class="galeria">
-{% for foto in fotos %}
-    <div class="tarjeta">
-        <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
-        <p>♥ {{ foto.likes.count }}</p>
-    </div>
-{% endfor %}
+
+{% for foto in resena.fotos.all %}
+<div>
+    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+
+    <p>♥ {{ foto.likes.count }}</p>
 </div>
+{% endfor %}
+
 {% endif %}
 
+
+<hr>
+
 <h2>Comentarios</h2>
-{% for c in comentarios %}
-<div class="tarjeta"><strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}</div>
+
+{% for c in resena.comentarios.all %}
+
+<div>
+    <strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}
+</div>
+
 {% empty %}
 <p>Todavía no hay comentarios.</p>
 {% endfor %}
 
 <p><a href="{% url 'lista_resenas' %}">Volver al listado de reseñas</a></p>
+
 {% endblock %}

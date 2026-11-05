@@ -1,17 +1,29 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Reseñas{% endblock %}
+
 {% block contenido %}
+
 <h1>Reseñas</h1>
+
 {% for resena in resenas %}
-<div class="tarjeta">
-    <h3><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
-    <p>
-        <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a>
-        · <span class="estrellas">{{ resena.puntuacion }} / 5 ★</span> · por <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>
-    </p>
+
+<div>
+    <h2><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h2>
+
+    <p><strong>Restaurante:</strong> <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a></p>
+
+    <p><strong>Puntuación:</strong> {{ resena.puntuacion }} / 5 ★</p>
+
+    <p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a></p>
 </div>
+
+<hr>
+
 {% empty %}
 <p>No hay reseñas registradas.</p>
 {% endfor %}
+
 <a href="{% url 'index' %}">Volver al inicio</a>
+
 {% endblock %}

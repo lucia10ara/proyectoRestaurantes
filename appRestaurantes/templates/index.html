@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Inicio - Bilbao Gastro{% endblock %}
+
 {% block contenido %}
+
 <h1>Bilbao Gastro</h1>
+
 <p>La red social de restaurantes de Bilbao: opina, puntúa de 1 a 5 estrellas y comparte tus fotos.</p>
 
 <h2>Secciones</h2>
+
+<!-- desde aquí se llega a todas las listas -->
 <ul>
     <li><a href="{% url 'lista_ciudades' %}">Listado de ciudades</a></li>
     <li><a href="{% url 'lista_restaurantes' %}">Listado de restaurantes</a></li>
@@ -13,5 +19,7 @@
     <li><a href="{% url 'lista_perfiles' %}">Perfiles de usuarios</a></li>
     <li><a href="/admin/">Panel de administración</a></li>
 </ul>
+
 <p>Desde cada listado se accede a la vista de detalle de cada elemento.</p>
+
 {% endblock %}

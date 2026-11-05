@@ -1,11 +1,11 @@
 from django.contrib import admin
 from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario
 
-
+#con class cambiamos como se ve la lista de restaurantes en el admin
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'ciudad', 'fecha_alta')
-    search_fields = ('usuario__username',)
+    list_display = ('usuario', 'ciudad', 'fecha_alta') #personalizamos la vista de la lista de perfiles en el admin añadiendo las columnas de ciudad y fecha de alta
+    search_fields = ('usuario__username',) #personalizamos la búsqueda de perfiles en el admin para que busque por el nombre de usuario del perfil (usuario__username)
 
 
 @admin.register(Ciudad)
@@ -13,7 +13,7 @@ class CiudadAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'comunidad')
 
 
-admin.site.register(Alergeno)
+admin.site.register(Alergeno) #registro simple
 
 
 @admin.register(Restaurante)

@@ -1,17 +1,32 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Perfiles{% endblock %}
+
 {% block contenido %}
+
 <h1>Usuarios</h1>
+
 {% for p in perfiles %}
-<div class="tarjeta cabecera">
-    {% if p.foto_url %}<img class="avatar" src="{{ p.foto_url }}" alt="Foto de {{ p }}">{% endif %}
-    <div>
-        <h2><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a></h2>
-        {% if p.biografia %}<p>{{ p.biografia }}</p>{% endif %}
-    </div>
+
+<div>
+    <!-- la foto de perfil es opcional -->
+    {% if p.foto_url %}
+    <img src="{{ p.foto_url }}" alt="Foto de {{ p }}" width="80">
+    {% endif %}
+
+    <h2><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a></h2>
+
+    {% if p.biografia %}
+    <p><strong>Biografía:</strong> {{ p.biografia }}</p>
+    {% endif %}
 </div>
+
+<hr>
+
 {% empty %}
 <p>No hay usuarios registrados.</p>
 {% endfor %}
+
 <a href="{% url 'index' %}">Volver al inicio</a>
+
 {% endblock %}

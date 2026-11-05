@@ -52,11 +52,11 @@ class Alergeno(models.Model):
 
 class Restaurante(models.Model):
     ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE, related_name='restaurantes')  #ciudad donde está, una ciudad tiene muchos restaurantes (relación uno a muchos)
-    nombre = models.CharField(max_length=100, unique=True)  #nombre del restaurante, no se puede repetir
+    nombre = models.CharField(max_length=100)  #nombre del restaurante, puede repetirse (cadenas con varios locales)
     tipo_cocina = models.CharField(max_length=50)  #tipo de comida (pintxos, italiano, asador...)
-    direccion = models.CharField(max_length=200, blank=True, null=True)  #calle y número
+    direccion = models.CharField(max_length=200)  #calle y número, obligatoria para distinguir locales de una misma cadena
     descripcion = models.TextField(blank=True, null=True)  #descripción larga del sitio
-    admite_ninos = models.BooleanField(default=False)  #si se puede ir con niños
+    admite_ninos = models.BooleanField(default=True)  #si se puede ir con niños
     admite_perros = models.BooleanField(default=False)  #si se puede ir con perro
     opciones_sin_alergenos = models.ManyToManyField(Alergeno, blank=True, related_name='restaurantes')  #alérgenos para los que tiene opciones adaptadas (relación muchos a muchos)
 
@@ -65,6 +65,9 @@ class Restaurante(models.Model):
         verbose_name = "Restaurante"
         verbose_name_plural = "Restaurantes"
         ordering = ['nombre']
+        constraints = [  #mismo nombre y misma ciudad sí, pero no en la misma dirección
+            models.UniqueConstraint(fields=['ciudad', 'nombre', 'direccion'], name='restaurante_unico_por_local'),
+        ]
 
     def __str__(self):
         return self.nombre

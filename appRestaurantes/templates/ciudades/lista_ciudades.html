@@ -1,14 +1,30 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Ciudades{% endblock %}
+
 {% block contenido %}
+
 <h1>Ciudades</h1>
+
+<!-- recorremos todas las ciudades que nos pasa la vista -->
 {% for c in ciudades %}
-<div class="tarjeta">
+
+<div>
     <h2><a href="{% url 'detalle_ciudad' c.id %}">{{ c.nombre }}</a></h2>
-    <p>{% if c.comunidad %}{{ c.comunidad }} · {% endif %}{{ c.n_restaurantes }} restaurantes</p>
+
+    {% if c.comunidad %}
+    <p><strong>Comunidad:</strong> {{ c.comunidad }}</p>
+    {% endif %}
+
+    <p><strong>Restaurantes:</strong> {{ c.restaurantes.count }}</p>
 </div>
+
+<hr>
+
 {% empty %}
 <p>No hay ciudades registradas.</p>
 {% endfor %}
+
 <a href="{% url 'index' %}">Volver al inicio</a>
+
 {% endblock %}

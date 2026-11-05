@@ -1,27 +1,63 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Foto de {{ foto.restaurante.nombre }}{% endblock %}
+
 {% block contenido %}
+
 <h1>Foto de {{ foto.restaurante.nombre }}</h1>
+
+<hr>
+
 <img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}">
-{% if foto.pie %}<p>{{ foto.pie }}</p>{% endif %}
-<p>♥ {{ n_likes }} · {{ foto.get_tipo_display }} · por <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a>, {{ foto.fecha }}</p>
-<p>Restaurante: <a href="{% url 'detalle_restaurante' foto.restaurante.id %}">{{ foto.restaurante.nombre }}</a></p>
-{% if foto.resena %}
-<p>Reseña asociada: <a href="{% url 'detalle_resena' foto.resena.id %}">{{ foto.resena.titulo }}</a></p>
+
+{% if foto.pie %}
+<p>{{ foto.pie }}</p>
 {% endif %}
 
+<!-- get_tipo_display saca el nombre del tipo (comida, local, amigos) -->
+<p><strong>Tipo:</strong> {{ foto.get_tipo_display }}</p>
+
+<p><strong>Likes:</strong> {{ foto.likes.count }}</p>
+
+<p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a>, {{ foto.fecha }}</p>
+
+<p><strong>Restaurante:</strong> <a href="{% url 'detalle_restaurante' foto.restaurante.id %}">{{ foto.restaurante.nombre }}</a></p>
+
+<!-- la reseña es opcional -->
+{% if foto.resena %}
+<p><strong>Reseña asociada:</strong> <a href="{% url 'detalle_resena' foto.resena.id %}">{{ foto.resena.titulo }}</a></p>
+{% endif %}
+
+
+<hr>
+
 <h2>Les gusta a</h2>
-<p>{% for p in quienes_like %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Todavía a nadie.{% endfor %}</p>
+
+<p>
+    {% for p in foto.likes.all %}
+        <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        Todavía a nadie.
+    {% endfor %}
+</p>
+
+
+<hr>
 
 <h2>Comentarios</h2>
-{% for c in comentarios %}
-<div class="tarjeta">
+
+{% for c in foto.comentarios.all %}
+
+<div>
     <strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}
-    <br><small>{{ c.fecha|date:"d/m/Y H:i" }}</small>
+    <br>
+    <small>{{ c.fecha|date:"d/m/Y H:i" }}</small>
 </div>
+
 {% empty %}
 <p>Todavía no hay comentarios.</p>
 {% endfor %}
 
 <p><a href="{% url 'lista_fotos' %}">Volver a la galería</a></p>
+
 {% endblock %}

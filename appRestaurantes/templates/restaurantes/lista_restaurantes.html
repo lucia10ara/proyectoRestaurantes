@@ -1,36 +1,30 @@
 {% extends 'base.html' %}
+
 {% block titulo %}Restaurantes{% endblock %}
+
 {% block contenido %}
+
 <h1>Restaurantes</h1>
 
-<form method="get" class="tarjeta">
-    <label>Ciudad
-        <select name="ciudad">
-            <option value="">Todas</option>
-            {% for c in ciudades %}<option value="{{ c.id }}" {% if f_ciudad == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
-        </select>
-    </label>
-    <label>Opciones sin
-        <select name="alergeno">
-            <option value="">Cualquiera</option>
-            {% for a in alergenos %}<option value="{{ a.id }}" {% if f_alergeno == a.id|stringformat:"s" %}selected{% endif %}>{{ a.nombre }}</option>{% endfor %}
-        </select>
-    </label>
-    <label><input type="checkbox" name="ninos" value="1" {% if f_ninos %}checked{% endif %}> Admite niños</label>
-    <label><input type="checkbox" name="perros" value="1" {% if f_perros %}checked{% endif %}> Admite perros</label>
-    <button type="submit">Filtrar</button>
-    <a href="{% url 'lista_restaurantes' %}">Quitar filtros</a>
-</form>
-
 {% for r in restaurantes %}
-<div class="tarjeta">
+
+<div>
     <h2><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h2>
-    <p>{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</p>
-    <p>Niños: {{ r.admite_ninos|yesno:"sí,no" }} · Perros: {{ r.admite_perros|yesno:"sí,no" }}</p>
-    <p class="estrellas">{% if r.media %}★ {{ r.media|floatformat:1 }} / 5{% else %}Sin reseñas todavía{% endif %}</p>
+
+    <p><strong>Cocina:</strong> {{ r.tipo_cocina }}</p>
+
+    <p><strong>Ciudad:</strong> {{ r.ciudad.nombre }}</p>
+
+    <!-- yesno convierte el booleano en sí o no -->
+    <p><strong>Niños:</strong> {{ r.admite_ninos|yesno:"sí,no" }} · <strong>Perros:</strong> {{ r.admite_perros|yesno:"sí,no" }}</p>
 </div>
+
+<hr>
+
 {% empty %}
-<p>No hay restaurantes con esos filtros.</p>
+<p>No hay restaurantes registrados.</p>
 {% endfor %}
+
 <a href="{% url 'index' %}">Volver al inicio</a>
+
 {% endblock %}
