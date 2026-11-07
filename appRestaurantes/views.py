@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Perfil, Ciudad, Restaurante, Resena, Foto
 
+# Create your views here.
+
 #DEFINIMOS LAS LISTAS DE LISTAS Y LISTAS DE DETALLES PARA CADA MODELO
 
 #Pagina principal 

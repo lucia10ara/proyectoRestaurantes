@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-#Siempre que modifico este archivo hago python manage.py makemigrations y python manage.py migrate
+#!! python manage.py makemigrations y python manage.py migrate
+
 #Nota: hemos cargado algunos datos de prueba con un json creado por la IA, a partir de ahí hemos subido algunas cosas nuestras desde admin
 
 class Ciudad(models.Model):
