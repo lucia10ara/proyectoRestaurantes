@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 
+<!-- añadimos una barra superior de navegacion para que se pueda acceder a cada seccion desde todas las paginas -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block titulo %}Bilbao Gastro{% endblock %}</title>
+    <title>{% block titulo %}Restaurantes de España{% endblock %}</title>
+
+    <!--hemos añadido un pequeño style para que las imagenes que subimos no ocupen toda la pantalla-->
+    <style>
+        img { max-width: 300px; height: auto; }
+    </style>
 </head>
 
 <body>
 
-    <nav> <!-- barra de navegación para todas las páginas (la extienden desde su html) -->
-        <a href="{% url 'index' %}">Inicio</a> |
+    <nav> <!-- barra de navegación (la extienden desde su html) -->
+        <a href="{% url 'index' %}">Inicio</a> | <!--la pagina principal-->
+
+        <!-- enlaces a las distintas secciones de la web -->
         <a href="{% url 'lista_ciudades' %}">Ciudades</a> |
         <a href="{% url 'lista_restaurantes' %}">Restaurantes</a> |
         <a href="{% url 'lista_resenas' %}">Reseñas</a> |
         <a href="{% url 'lista_fotos' %}">Fotos</a> |
         <a href="{% url 'lista_perfiles' %}">Perfiles</a> |
+
+        <!-- enlace al admin de django -->
         <a href="/admin/">Administración</a>
     </nav>
 
     <hr>
 
-    <!-- aquí se mete el contenido de cada página -->
+    <!--aqui se mete el contenido de cada pag -->
     {% block contenido %}{% endblock %}
 
 </body>

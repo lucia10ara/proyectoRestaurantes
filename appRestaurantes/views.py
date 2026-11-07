@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Perfil, Ciudad, Restaurante, Resena, Foto
 
+#DEFINIMOS LAS LISTAS DE LISTAS Y LISTAS DE DETALLES PARA CADA MODELO
 
+#Pagina principal 
 def index(request):
     return render(request, 'index.html')
 
 
-#---------- Restaurantes ----------
+# Restaurantes ---------------
 def lista_restaurantes(request):
     restaurantes = Restaurante.objects.all()
     context = {'restaurantes': restaurantes}
@@ -19,7 +21,7 @@ def detalle_restaurante(request, pk):
     return render(request, 'restaurantes/detalle_restaurante.html', context)
 
 
-#---------- Reseñas ----------
+# Reseñas ---------------------
 def lista_resenas(request):
     resenas = Resena.objects.all()
     context = {'resenas': resenas}
@@ -32,7 +34,7 @@ def detalle_resena(request, pk):
     return render(request, 'resenas/detalle_resena.html', context)
 
 
-#---------- Fotos ----------
+# Fotos --------------------
 def lista_fotos(request):
     fotos = Foto.objects.all()
     context = {'fotos': fotos}
@@ -45,7 +47,7 @@ def detalle_foto(request, pk):
     return render(request, 'fotos/detalle_foto.html', context)
 
 
-#---------- Perfiles ----------
+#Perfiles -----------------------------
 def lista_perfiles(request):
     perfiles = Perfil.objects.all()
     context = {'perfiles': perfiles}
@@ -58,7 +60,7 @@ def detalle_perfil(request, pk):
     return render(request, 'perfiles/detalle_perfil.html', context)
 
 
-#---------- Ciudades ----------
+#Ciudades -----------------------------------
 def lista_ciudades(request):
     ciudades = Ciudad.objects.all()
     context = {'ciudades': ciudades}

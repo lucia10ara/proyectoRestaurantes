@@ -6,6 +6,11 @@
 
 <h1>{{ restaurante.nombre }}</h1>
 
+<!-- foto de portada, solo si el restaurante tiene -->
+{% if restaurante.imagen_src %}
+<img src="{{ restaurante.imagen_src }}" alt="Portada de {{ restaurante.nombre }}" style="max-width: 400px;">
+{% endif %}
+
 <hr>
 
 <p><strong>Ciudad:</strong> <a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
@@ -58,7 +63,7 @@
 {% for foto in restaurante.fotos.all %}
 
 <div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
 
     <p><strong>Likes:</strong> {{ foto.likes.count }} · <strong>Tipo:</strong> {{ foto.get_tipo_display }}</p>
 </div>

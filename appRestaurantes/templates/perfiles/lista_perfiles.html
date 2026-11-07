@@ -10,8 +10,8 @@
 
 <div>
     <!-- la foto de perfil es opcional -->
-    {% if p.foto_url %}
-    <img src="{{ p.foto_url }}" alt="Foto de {{ p }}" width="80">
+    {% if p.imagen_src %}
+    <img src="{{ p.imagen_src }}" alt="Foto de {{ p }}" width="80">
     {% endif %}
 
     <h2><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a></h2>

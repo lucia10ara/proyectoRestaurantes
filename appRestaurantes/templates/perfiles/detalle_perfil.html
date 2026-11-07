@@ -4,8 +4,8 @@
 
 {% block contenido %}
 
-{% if perfil.foto_url %}
-<img src="{{ perfil.foto_url }}" alt="Foto de {{ perfil }}" width="120">
+{% if perfil.imagen_src %}
+<img src="{{ perfil.imagen_src }}" alt="Foto de {{ perfil }}" width="120">
 {% endif %}
 
 <h1>{{ perfil }}</h1>
@@ -27,9 +27,9 @@
 
 <h2>Amigos y seguidores</h2>
 
-<!-- amigos es simétrico (los dos son amigos), siguiendo y seguidores no -->
+<!-- amigos = seguimiento mutuo (se calcula en el modelo), siguiendo y seguidores no son simétricos -->
 <p><strong>Amigos:</strong>
-    {% for p in perfil.amigos.all %}
+    {% for p in perfil.amigos %}
         <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
     {% empty %}
         ninguno
@@ -79,7 +79,7 @@
 {% for foto in perfil.fotos.all %}
 
 <div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
+    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
 
     <p>{{ foto.restaurante.nombre }} · ♥ {{ foto.likes.count }}</p>
 </div>
@@ -97,7 +97,7 @@
 {% for foto in perfil.fotos_gustadas.all %}
 
 <div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
+    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
 
     <p>{{ foto.restaurante.nombre }}</p>
 </div>

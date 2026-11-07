@@ -8,7 +8,7 @@
 
 <hr>
 
-<img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}">
+<img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" style="max-width: 500px;">
 
 {% if foto.pie %}
 <p>{{ foto.pie }}</p>

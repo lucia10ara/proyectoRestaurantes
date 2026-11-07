@@ -3,8 +3,8 @@
     "model": "auth.user",
     "pk": 1,
     "fields": {
-      "username": "ane",
-      "first_name": "Ane",
+      "username": "foodie.bilbao",
+      "first_name": "",
       "password": "!",
       "is_staff": false,
       "is_superuser": false,
@@ -16,8 +16,8 @@
     "model": "auth.user",
     "pk": 2,
     "fields": {
-      "username": "mikel",
-      "first_name": "Mikel",
+      "username": "txuri.eats",
+      "first_name": "",
       "password": "!",
       "is_staff": false,
       "is_superuser": false,
@@ -29,8 +29,8 @@
     "model": "auth.user",
     "pk": 3,
     "fields": {
-      "username": "jon",
-      "first_name": "Jon",
+      "username": "pintxo.hunter",
+      "first_name": "",
       "password": "!",
       "is_staff": false,
       "is_superuser": false,
@@ -42,8 +42,34 @@
     "model": "auth.user",
     "pk": 4,
     "fields": {
-      "username": "lucia",
-      "first_name": "Lucia",
+      "username": "irati_gastro",
+      "first_name": "",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+      "username": "dani.panzaverde",
+      "first_name": "",
+      "password": "!",
+      "is_staff": false,
+      "is_superuser": false,
+      "is_active": true,
+      "date_joined": "2026-09-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 6,
+    "fields": {
+      "username": "entrelatas.mad",
+      "first_name": "",
       "password": "!",
       "is_staff": false,
       "is_superuser": false,
@@ -123,15 +149,12 @@
     "pk": 1,
     "fields": {
       "usuario": 1,
-      "foto_url": "https://picsum.photos/seed/perfilane/200/200",
-      "biografia": "Me encantan los pintxos y el vermut.",
+      "foto_url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200&h=200&fit=crop&q=80",
+      "biografia": "Bilbao | pintxos, vermut y cenas con la cuadrilla",
       "ciudad": 1,
       "fecha_alta": "2026-09-15",
-      "amigos": [
-        2,
-        3
-      ],
       "siguiendo": [
+        2,
         3,
         4
       ]
@@ -142,13 +165,10 @@
     "pk": 2,
     "fields": {
       "usuario": 2,
-      "foto_url": "https://picsum.photos/seed/perfilmikel/200/200",
-      "biografia": "Parrilla y buen vino.",
+      "foto_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop&q=80",
+      "biografia": "Probando todas las hamburgueserías de Bizkaia",
       "ciudad": 1,
       "fecha_alta": "2026-09-15",
-      "amigos": [
-        1
-      ],
       "siguiendo": [
         1,
         3
@@ -160,14 +180,13 @@
     "pk": 3,
     "fields": {
       "usuario": 3,
-      "foto_url": "https://picsum.photos/seed/perfiljon/200/200",
-      "biografia": "Siempre buscando el mejor pintxo de gambas.",
+      "foto_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop&q=80",
+      "biografia": "Caza de pintxos en el Casco Viejo",
       "ciudad": 1,
       "fecha_alta": "2026-09-15",
-      "amigos": [
+      "siguiendo": [
         1
-      ],
-      "siguiendo": []
+      ]
     }
   },
   {
@@ -175,15 +194,42 @@
     "pk": 4,
     "fields": {
       "usuario": 4,
-      "foto_url": "https://picsum.photos/seed/perfillucia/200/200",
-      "biografia": "Probando todos los sitios de Bilbao.",
+      "foto_url": "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=200&h=200&fit=crop&q=80",
+      "biografia": "Pizza > todo lo demás. Reseñas sinceras",
       "ciudad": 1,
       "fecha_alta": "2026-09-15",
-      "amigos": [],
       "siguiendo": [
         1,
-        2,
-        3
+        5
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 5,
+    "fields": {
+      "usuario": 5,
+      "foto_url": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop&q=80",
+      "biografia": "Madrid de bar en bar | brunch lover",
+      "ciudad": 2,
+      "fecha_alta": "2026-09-15",
+      "siguiendo": [
+        4,
+        6
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.perfil",
+    "pk": 6,
+    "fields": {
+      "usuario": 6,
+      "foto_url": "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=200&h=200&fit=crop&q=80",
+      "biografia": "Menú del día, cocido y tapas por Madrid",
+      "ciudad": 2,
+      "fecha_alta": "2026-09-15",
+      "siguiendo": [
+        5
       ]
     }
   },
@@ -191,13 +237,14 @@
     "model": "appRestaurantes.restaurante",
     "pk": 1,
     "fields": {
-      "nombre": "Gure Toki",
-      "tipo_cocina": "Pintxos",
-      "direccion": "Plaza Nueva 12",
-      "descripcion": "Gure Toki: un clasico de Casco Viejo para disfrutar de pintxos en Bilbao.",
       "ciudad": 1,
+      "nombre": "Arambarri Food and Roll",
+      "tipo_cocina": "Bocadillos y rolls",
+      "direccion": "Alameda Urquijo 6",
+      "descripcion": "Rolls y bocadillos para llevar o comer allí, en pleno centro de Bilbao.",
+      "foto_url": "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&h=400&fit=crop&q=80",
       "admite_ninos": true,
-      "admite_perros": true,
+      "admite_perros": false,
       "opciones_sin_alergenos": [
         1,
         2
@@ -208,11 +255,12 @@
     "model": "appRestaurantes.restaurante",
     "pk": 2,
     "fields": {
-      "nombre": "Cafe Bar Bilbao",
-      "tipo_cocina": "Pintxos",
-      "direccion": "Plaza Nueva 6",
-      "descripcion": "Cafe Bar Bilbao: un clasico de Casco Viejo para disfrutar de pintxos en Bilbao.",
       "ciudad": 1,
+      "nombre": "Bobby's",
+      "tipo_cocina": "Hamburguesas",
+      "direccion": "Calle Ledesma 10",
+      "descripcion": "Hamburguesas y costillas en un local de ambiente americano.",
+      "foto_url": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&h=400&fit=crop&q=80",
       "admite_ninos": true,
       "admite_perros": false,
       "opciones_sin_alergenos": [
@@ -224,31 +272,35 @@
     "model": "appRestaurantes.restaurante",
     "pk": 3,
     "fields": {
-      "nombre": "Etxebarri Bilbao",
-      "tipo_cocina": "Parrilla",
-      "direccion": "Gran Via 30",
-      "descripcion": "Etxebarri Bilbao: un clasico de Abando para disfrutar de parrilla en Bilbao.",
       "ciudad": 1,
-      "admite_ninos": false,
-      "admite_perros": true,
-      "opciones_sin_alergenos": []
+      "nombre": "La Tagliatella",
+      "tipo_cocina": "Italiana",
+      "direccion": "Gran Vía 20",
+      "descripcion": "Pasta fresca y pizzas en la Gran Vía de Bilbao.",
+      "foto_url": "https://images.unsplash.com/photo-1481931098730-318b6f776db0?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1,
+        2,
+        5
+      ]
     }
   },
   {
     "model": "appRestaurantes.restaurante",
     "pk": 4,
     "fields": {
-      "nombre": "Zuria Sushi",
-      "tipo_cocina": "Japonesa",
-      "direccion": "Alameda Urquijo 20",
-      "descripcion": "Zuria Sushi: un clasico de Indautxu para disfrutar de japonesa en Bilbao.",
       "ciudad": 1,
+      "nombre": "Nap",
+      "tipo_cocina": "Pizzería",
+      "direccion": "Calle Ercilla 15",
+      "descripcion": "Pizza napolitana de masa fina y horno de leña.",
+      "foto_url": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop&q=80",
       "admite_ninos": true,
-      "admite_perros": false,
+      "admite_perros": true,
       "opciones_sin_alergenos": [
-        1,
-        2,
-        3
+        2
       ]
     }
   },
@@ -256,13 +308,14 @@
     "model": "appRestaurantes.restaurante",
     "pk": 5,
     "fields": {
-      "nombre": "La Ribera Asador",
-      "tipo_cocina": "Asador",
-      "direccion": "Calle Ribera 5",
-      "descripcion": "La Ribera Asador: un clasico de Ribera para disfrutar de asador en Bilbao.",
       "ciudad": 1,
-      "admite_ninos": false,
-      "admite_perros": false,
+      "nombre": "Café Iruña",
+      "tipo_cocina": "Cafetería",
+      "direccion": "Berastegui 5",
+      "descripcion": "Café histórico de Bilbao, famoso por su decoración y sus pinchos morunos.",
+      "foto_url": "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": true,
+      "admite_perros": true,
       "opciones_sin_alergenos": []
     }
   },
@@ -271,10 +324,30 @@
     "pk": 6,
     "fields": {
       "ciudad": 2,
+      "nombre": "VIPS",
+      "tipo_cocina": "Cafetería y brunch",
+      "direccion": "Gran Vía 68",
+      "descripcion": "Desayunos, brunch y cena con carta de toda la vida.",
+      "foto_url": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1,
+        2,
+        5
+      ]
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 7,
+    "fields": {
+      "ciudad": 2,
       "nombre": "Casa Lucio",
       "tipo_cocina": "Cocina castellana",
       "direccion": "Cava Baja 35",
-      "descripcion": "Casa Lucio: un clásico de Madrid.",
+      "descripcion": "Un clásico de la Cava Baja, famoso por sus huevos rotos.",
+      "foto_url": "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&h=400&fit=crop&q=80",
       "admite_ninos": true,
       "admite_perros": false,
       "opciones_sin_alergenos": [
@@ -285,13 +358,29 @@
   },
   {
     "model": "appRestaurantes.restaurante",
-    "pk": 7,
+    "pk": 8,
+    "fields": {
+      "ciudad": 2,
+      "nombre": "Sobrino de Botín",
+      "tipo_cocina": "Asador",
+      "direccion": "Cuchilleros 17",
+      "descripcion": "Asador tradicional de Madrid, conocido por el cochinillo y el cordero.",
+      "foto_url": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 9,
     "fields": {
       "ciudad": 3,
       "nombre": "Can Culleretes",
       "tipo_cocina": "Catalana",
       "direccion": "Quintana 5",
-      "descripcion": "Can Culleretes: un clásico de Barcelona.",
+      "descripcion": "Cocina catalana de siempre en el Barrio Gótico.",
+      "foto_url": "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600&h=400&fit=crop&q=80",
       "admite_ninos": true,
       "admite_perros": true,
       "opciones_sin_alergenos": [
@@ -301,16 +390,51 @@
   },
   {
     "model": "appRestaurantes.restaurante",
-    "pk": 8,
+    "pk": 10,
     "fields": {
       "ciudad": 4,
       "nombre": "El Rinconcillo",
       "tipo_cocina": "Tapas",
       "direccion": "Gerona 40",
-      "descripcion": "El Rinconcillo: un clásico de Sevilla.",
+      "descripcion": "Tabernas de tapas más antiguas de Sevilla.",
+      "foto_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop&q=80",
       "admite_ninos": false,
       "admite_perros": true,
       "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 11,
+    "fields": {
+      "ciudad": 1,
+      "nombre": "El Búho Rojo",
+      "tipo_cocina": "Bar y raciones",
+      "direccion": "Avenida de las Universidades 24",
+      "descripcion": "Bar de ambiente universitario junto a Deusto, ideal para raciones y cañas después de clase.",
+      "foto_url": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": false,
+      "admite_perros": true,
+      "opciones_sin_alergenos": []
+    }
+  },
+  {
+    "model": "appRestaurantes.restaurante",
+    "pk": 12,
+    "fields": {
+      "ciudad": 1,
+      "nombre": "Taula",
+      "tipo_cocina": "Brunch y bollería",
+      "direccion": "Plaza Indautxu 3",
+      "descripcion": "Brunch, cruasanes y bollería recién hecha en el barrio de Indautxu, con desayunos y comidas ligeras.",
+      "foto_url": "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600&h=400&fit=crop&q=80",
+      "admite_ninos": true,
+      "admite_perros": false,
+      "opciones_sin_alergenos": [
+        1,
+        2,
+        5
+      ]
     }
   },
   {
@@ -320,8 +444,8 @@
       "restaurante": 1,
       "autor": 1,
       "puntuacion": 5,
-      "titulo": "Pintxos de diez",
-      "texto": "Pintxos excelentes y buen ambiente.",
+      "titulo": "El roll que me tenía enganchada",
+      "texto": "Rápido, bien de precio y el roll de pollo está de locos. Perfecto para comer entre clase y clase.",
       "fecha": "2026-10-01"
     }
   },
@@ -330,11 +454,11 @@
     "pk": 2,
     "fields": {
       "restaurante": 1,
-      "autor": 2,
+      "autor": 3,
       "puntuacion": 4,
-      "titulo": "Muy buen sitio",
-      "texto": "Algo de cola pero merece la pena.",
-      "fecha": "2026-10-01"
+      "titulo": "Muy buen plan para comer rápido",
+      "texto": "Raciones generosas. Algo de cola a mediodía pero se mueve rápido.",
+      "fecha": "2026-10-02"
     }
   },
   {
@@ -342,71 +466,143 @@
     "pk": 3,
     "fields": {
       "restaurante": 2,
-      "autor": 3,
+      "autor": 2,
       "puntuacion": 5,
-      "titulo": "El mejor pintxo de gambas",
-      "texto": "Imprescindible si vienes a Bilbao.",
-      "fecha": "2026-10-01"
+      "titulo": "Mejor hamburguesa de Bilbao",
+      "texto": "Carne en su punto y las costillas brutales. Repetiría mañana.",
+      "fecha": "2026-10-03"
     }
   },
   {
     "model": "appRestaurantes.resena",
     "pk": 4,
     "fields": {
-      "restaurante": 3,
+      "restaurante": 2,
       "autor": 4,
-      "puntuacion": 4,
-      "titulo": "Carne en su punto",
-      "texto": "Producto de calidad, precio algo alto.",
-      "fecha": "2026-10-01"
+      "puntuacion": 3,
+      "titulo": "Buena pero esperaba más",
+      "texto": "La hamburguesa está rica, pero tardaron bastante en servirnos.",
+      "fecha": "2026-10-04"
     }
   },
   {
     "model": "appRestaurantes.resena",
     "pk": 5,
     "fields": {
-      "restaurante": 4,
-      "autor": 1,
-      "puntuacion": 3,
-      "titulo": "Correcto",
-      "texto": "Sushi fresco pero el servicio fue lento.",
-      "fecha": "2026-10-01"
+      "restaurante": 3,
+      "autor": 4,
+      "puntuacion": 4,
+      "titulo": "Pasta fresca y buen ambiente",
+      "texto": "Carbonara muy cremosa. El local es amplio y ideal para ir en grupo.",
+      "fecha": "2026-10-05"
     }
   },
   {
     "model": "appRestaurantes.resena",
     "pk": 6,
     "fields": {
-      "restaurante": 5,
-      "autor": 2,
+      "restaurante": 4,
+      "autor": 4,
       "puntuacion": 5,
-      "titulo": "Chuleton espectacular",
-      "texto": "Volveremos seguro.",
-      "fecha": "2026-10-01"
+      "titulo": "Pizza de las buenas",
+      "texto": "Masa fina y borde con aire, como tiene que ser. La de espinacas con burrata es top.",
+      "fecha": "2026-10-06"
     }
   },
   {
     "model": "appRestaurantes.resena",
     "pk": 7,
     "fields": {
-      "restaurante": 6,
-      "autor": 3,
+      "restaurante": 4,
+      "autor": 1,
       "puntuacion": 4,
-      "titulo": "Cocido de los de siempre",
-      "texto": "Raciones grandes y trato muy cercano.",
-      "fecha": "2026-10-05"
+      "titulo": "Napolitana de verdad",
+      "texto": "Muy buena relación calidad precio. Mejor reservar el fin de semana.",
+      "fecha": "2026-10-07"
     }
   },
   {
     "model": "appRestaurantes.resena",
     "pk": 8,
     "fields": {
+      "restaurante": 5,
+      "autor": 3,
+      "puntuacion": 4,
+      "titulo": "Un clásico imprescindible",
+      "texto": "Tomar algo aquí es parte de la experiencia de Bilbao. El pincho moruno, de los mejores.",
+      "fecha": "2026-10-08"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 9,
+    "fields": {
+      "restaurante": 6,
+      "autor": 5,
+      "puntuacion": 5,
+      "titulo": "Brunch de domingo",
+      "texto": "Tortitas con sirope y café ilimitado. Sin sorpresas, siempre acierta.",
+      "fecha": "2026-10-09"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 10,
+    "fields": {
+      "restaurante": 7,
+      "autor": 6,
+      "puntuacion": 5,
+      "titulo": "Huevos rotos de leyenda",
+      "texto": "Hay que reservar con tiempo, pero merece cada minuto de espera.",
+      "fecha": "2026-10-10"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 11,
+    "fields": {
       "restaurante": 8,
-      "autor": 4,
+      "autor": 6,
+      "puntuacion": 4,
+      "titulo": "Cochinillo espectacular",
+      "texto": "Piel crujiente y carne tierna. Algo caro pero es una experiencia.",
+      "fecha": "2026-10-11"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 12,
+    "fields": {
+      "restaurante": 10,
+      "autor": 5,
       "puntuacion": 5,
       "titulo": "Tapas de toda la vida",
-      "texto": "Muy auténtico, ideal para ir con el perro en la terraza.",
-      "fecha": "2026-10-06"
+      "texto": "Muy auténtico, la barra tiene un ambiente increíble.",
+      "fecha": "2026-10-12"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 13,
+    "fields": {
+      "restaurante": 11,
+      "autor": 2,
+      "puntuacion": 4,
+      "titulo": "Plan perfecto después de clase",
+      "texto": "Raciones para compartir y buen ambiente. Se llena los jueves.",
+      "fecha": "2026-10-13"
+    }
+  },
+  {
+    "model": "appRestaurantes.resena",
+    "pk": 14,
+    "fields": {
+      "restaurante": 12,
+      "autor": 1,
+      "puntuacion": 5,
+      "titulo": "Brunch y cruasanes de otro nivel",
+      "texto": "Los cruasanes están crujientes y el brunch es enorme y muy bien presentado. Ideal para un domingo en Indautxu.",
+      "fecha": "2026-10-14"
     }
   },
   {
@@ -417,8 +613,8 @@
       "resena": 1,
       "autor": 1,
       "tipo": "comida",
-      "url": "https://picsum.photos/seed/pintxo1/600/400",
-      "pie": "Pintxos de la barra",
+      "url": "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=600&h=400&fit=crop&q=80",
+      "pie": "Hoy toca roll 🌯 #bilbao #foodie",
       "likes": [
         2,
         3,
@@ -433,15 +629,15 @@
     "fields": {
       "restaurante": 1,
       "resena": 2,
-      "autor": 2,
+      "autor": 3,
       "tipo": "amigos",
-      "url": "https://picsum.photos/seed/amigos1/600/400",
-      "pie": "Cena con amigos",
+      "url": "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=400&fit=crop&q=80",
+      "pie": "Comida de cuadrilla en Arambarri 🍟",
       "likes": [
         1,
-        3
+        2
       ],
-      "fecha": "2026-10-02"
+      "fecha": "2026-10-03"
     }
   },
   {
@@ -450,64 +646,239 @@
     "fields": {
       "restaurante": 2,
       "resena": 3,
-      "autor": 3,
+      "autor": 2,
       "tipo": "comida",
-      "url": "https://picsum.photos/seed/gambas/600/400",
-      "pie": "La gamba famosa",
+      "url": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&h=400&fit=crop&q=80",
+      "pie": "Doble de queso y cola bien fría 🍔",
       "likes": [
         1,
-        2,
+        3,
         4
       ],
-      "fecha": "2026-10-02"
+      "fecha": "2026-10-03"
     }
   },
   {
     "model": "appRestaurantes.foto",
     "pk": 4,
     "fields": {
-      "restaurante": 3,
-      "resena": 4,
-      "autor": 4,
+      "restaurante": 2,
+      "resena": 3,
+      "autor": 2,
       "tipo": "comida",
-      "url": "https://picsum.photos/seed/carne/600/400",
-      "pie": "Solomillo",
+      "url": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop&q=80",
+      "pie": "Costillas para compartir 🔥",
       "likes": [
-        2
+        1,
+        4
       ],
-      "fecha": "2026-10-02"
+      "fecha": "2026-10-03"
     }
   },
   {
     "model": "appRestaurantes.foto",
     "pk": 5,
     "fields": {
-      "restaurante": 4,
-      "resena": null,
-      "autor": 1,
+      "restaurante": 2,
+      "resena": 4,
+      "autor": 4,
       "tipo": "local",
-      "url": "https://picsum.photos/seed/sushi/600/400",
-      "pie": "El local por dentro",
-      "likes": [],
-      "fecha": "2026-10-02"
+      "url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop&q=80",
+      "pie": "El ambiente de Bobby's por la noche",
+      "likes": [
+        2
+      ],
+      "fecha": "2026-10-04"
     }
   },
   {
     "model": "appRestaurantes.foto",
     "pk": 6,
     "fields": {
-      "restaurante": 5,
-      "resena": 6,
-      "autor": 2,
+      "restaurante": 3,
+      "resena": 5,
+      "autor": 4,
       "tipo": "comida",
-      "url": "https://picsum.photos/seed/chuleton/600/400",
-      "pie": "Chuleton",
+      "url": "https://images.unsplash.com/photo-1481931098730-318b6f776db0?w=600&h=400&fit=crop&q=80",
+      "pie": "Carbonara y vinito 🍝",
+      "likes": [
+        1,
+        3,
+        5
+      ],
+      "fecha": "2026-10-05"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 7,
+    "fields": {
+      "restaurante": 3,
+      "resena": null,
+      "autor": 1,
+      "tipo": "local",
+      "url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop&q=80",
+      "pie": "Local enorme en la Gran Vía",
+      "likes": [
+        4
+      ],
+      "fecha": "2026-10-05"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 8,
+    "fields": {
+      "restaurante": 4,
+      "resena": 6,
+      "autor": 4,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&h=400&fit=crop&q=80",
+      "pie": "Pizza de espinacas y burrata 🍕",
+      "likes": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "fecha": "2026-10-06"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 9,
+    "fields": {
+      "restaurante": 4,
+      "resena": 7,
+      "autor": 1,
+      "tipo": "amigos",
+      "url": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&q=80",
+      "pie": "Cena en Nap con la gente 🍕❤️",
+      "likes": [
+        2,
+        3,
+        4
+      ],
+      "fecha": "2026-10-07"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 10,
+    "fields": {
+      "restaurante": 5,
+      "resena": 8,
+      "autor": 3,
+      "tipo": "local",
+      "url": "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600&h=400&fit=crop&q=80",
+      "pie": "Cafecito en el Iruña ☕",
+      "likes": [
+        1,
+        2
+      ],
+      "fecha": "2026-10-08"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 11,
+    "fields": {
+      "restaurante": 6,
+      "resena": 9,
+      "autor": 5,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&h=400&fit=crop&q=80",
+      "pie": "Domingo de tortitas 🥞",
+      "likes": [
+        4,
+        6
+      ],
+      "fecha": "2026-10-09"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 12,
+    "fields": {
+      "restaurante": 7,
+      "resena": 10,
+      "autor": 6,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=600&h=400&fit=crop&q=80",
+      "pie": "Entrecot con patatas en Casa Lucio 🥩",
+      "likes": [
+        5
+      ],
+      "fecha": "2026-10-10"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 13,
+    "fields": {
+      "restaurante": 8,
+      "resena": 11,
+      "autor": 6,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=600&h=400&fit=crop&q=80",
+      "pie": "Carne a la brasa en Botín",
+      "likes": [
+        5
+      ],
+      "fecha": "2026-10-11"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 14,
+    "fields": {
+      "restaurante": 10,
+      "resena": 12,
+      "autor": 5,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop&q=80",
+      "pie": "Tapeo en El Rinconcillo 🍷",
+      "likes": [
+        4,
+        6
+      ],
+      "fecha": "2026-10-12"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 15,
+    "fields": {
+      "restaurante": 11,
+      "resena": 13,
+      "autor": 2,
+      "tipo": "amigos",
+      "url": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&q=80",
+      "pie": "Cañas y raciones tras la uni 🍻",
       "likes": [
         1,
         3,
         4
       ],
-      "fecha": "2026-10-02"
+      "fecha": "2026-10-13"
+    }
+  },
+  {
+    "model": "appRestaurantes.foto",
+    "pk": 16,
+    "fields": {
+      "restaurante": 12,
+      "resena": 14,
+      "autor": 1,
+      "tipo": "comida",
+      "url": "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600&h=400&fit=crop&q=80",
+      "pie": "Brunch de domingo en Taula 🥐☕",
+      "likes": [
+        2,
+        3,
+        4
+      ],
+      "fecha": "2026-10-14"
     }
   },
   {
@@ -515,10 +886,10 @@
     "pk": 1,
     "fields": {
       "foto": 1,
+      "resena": null,
       "autor": 2,
-      "texto": "Que buena pinta!",
-      "fecha": "2026-10-03T12:00:00Z",
-      "resena": null
+      "texto": "Qué buena pinta 😍",
+      "fecha": "2026-10-14T12:00:00Z"
     }
   },
   {
@@ -526,10 +897,10 @@
     "pk": 2,
     "fields": {
       "foto": 1,
+      "resena": null,
       "autor": 3,
       "texto": "Hay que repetir",
-      "fecha": "2026-10-03T12:00:00Z",
-      "resena": null
+      "fecha": "2026-10-15T12:00:00Z"
     }
   },
   {
@@ -537,10 +908,10 @@
     "pk": 3,
     "fields": {
       "foto": 3,
+      "resena": null,
       "autor": 1,
-      "texto": "La mejor gamba de Bilbao",
-      "fecha": "2026-10-03T12:00:00Z",
-      "resena": null
+      "texto": "La mejor hamburguesa de Bilbao",
+      "fecha": "2026-10-16T12:00:00Z"
     }
   },
   {
@@ -548,10 +919,10 @@
     "pk": 4,
     "fields": {
       "foto": 3,
+      "resena": null,
       "autor": 4,
       "texto": "Totalmente de acuerdo",
-      "fecha": "2026-10-03T12:00:00Z",
-      "resena": null
+      "fecha": "2026-10-17T12:00:00Z"
     }
   },
   {
@@ -559,21 +930,43 @@
     "pk": 5,
     "fields": {
       "foto": 6,
+      "resena": null,
       "autor": 3,
-      "texto": "Que punto de carne",
-      "fecha": "2026-10-03T12:00:00Z",
-      "resena": null
+      "texto": "Esa carbonara se ve increíble",
+      "fecha": "2026-10-18T12:00:00Z"
     }
   },
   {
     "model": "appRestaurantes.comentario",
     "pk": 6,
     "fields": {
-      "foto": null,
-      "resena": 7,
+      "foto": 8,
+      "resena": null,
       "autor": 1,
-      "texto": "Apuntado para mi viaje a Madrid",
-      "fecha": "2026-10-07T10:00:00Z"
+      "texto": "Me la apunto para el finde",
+      "fecha": "2026-10-19T12:00:00Z"
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 7,
+    "fields": {
+      "foto": 11,
+      "resena": null,
+      "autor": 4,
+      "texto": "Quiero esas tortitas ya",
+      "fecha": "2026-10-20T12:00:00Z"
+    }
+  },
+  {
+    "model": "appRestaurantes.comentario",
+    "pk": 8,
+    "fields": {
+      "foto": null,
+      "resena": 10,
+      "autor": 5,
+      "texto": "Apuntado para la próxima vez que vaya a Madrid",
+      "fecha": "2026-10-21T12:00:00Z"
     }
   }
 ]

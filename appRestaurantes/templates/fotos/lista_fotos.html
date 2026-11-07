@@ -9,7 +9,7 @@
 {% for foto in fotos %}
 
 <div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.url }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
 
     <h2>{{ foto.restaurante.nombre }}</h2>
 

@@ -1,40 +1,34 @@
 from django.contrib import admin
 from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario
 
-#con class cambiamos como se ve la lista de restaurantes en el admin
-@admin.register(Perfil)
-class PerfilAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'ciudad', 'fecha_alta') #personalizamos la vista de la lista de perfiles en el admin añadiendo las columnas de ciudad y fecha de alta
-    search_fields = ('usuario__username',) #personalizamos la búsqueda de perfiles en el admin para que busque por el nombre de usuario del perfil (usuario__username)
+#Definimos los modelos en el admin para poder registrar instancias
+admin.site.register(Perfil)
 
-
-@admin.register(Ciudad)
-class CiudadAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'comunidad')
-
+admin.site.register(Ciudad)
 
 admin.site.register(Alergeno) #registro simple
 
+admin.site.register(Restaurante)
 
-@admin.register(Restaurante)
-class RestauranteAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'ciudad', 'tipo_cocina', 'admite_ninos', 'admite_perros')
-    list_filter = ('ciudad', 'admite_ninos', 'admite_perros', 'opciones_sin_alergenos')
-    search_fields = ('nombre', 'direccion')
+#Fotos dentro de la reseña: se añaden varias desde la propia página de la reseña
+class FotoInline(admin.TabularInline):
+    model = Foto
+    extra = 2  #filas vacías para añadir fotos
+    fields = ('tipo', 'imagen', 'url', 'pie')  #restaurante y autor se rellenan solos con los de la reseña
 
 
 @admin.register(Resena)
 class ResenaAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'restaurante', 'autor', 'puntuacion', 'fecha')
-    list_filter = ('puntuacion', 'restaurante')
+    inlines = [FotoInline]
 
+    def save_formset(self, request, form, formset, change):
+        fotos = formset.save(commit=False)
+        for foto in fotos:
+            foto.restaurante = form.instance.restaurante  #la foto es del mismo restaurante que la reseña
+            foto.autor = form.instance.autor  #y la sube el autor de la reseña
+            foto.save()
+        formset.save_m2m()
 
-@admin.register(Foto)
-class FotoAdmin(admin.ModelAdmin):
-    list_display = ('restaurante', 'autor', 'tipo', 'fecha')
-    list_filter = ('tipo', 'restaurante')
+admin.site.register(Foto)
 
-
-@admin.register(Comentario)
-class ComentarioAdmin(admin.ModelAdmin):
-    list_display = ('autor', 'foto', 'resena', 'texto', 'fecha')
+admin.site.register(Comentario)

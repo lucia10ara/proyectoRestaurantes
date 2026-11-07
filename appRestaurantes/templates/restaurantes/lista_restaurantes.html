@@ -9,6 +9,10 @@
 {% for r in restaurantes %}
 
 <div>
+    {% if r.imagen_src %}
+    <a href="{% url 'detalle_restaurante' r.id %}"><img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}" width="200"></a>
+    {% endif %}
+
     <h2><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h2>
 
     <p><strong>Cocina:</strong> {{ r.tipo_cocina }}</p>
