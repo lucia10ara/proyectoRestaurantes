@@ -5,6 +5,11 @@ from .models import Perfil, Ciudad, Restaurante, Resena, Foto
 
 #DEFINIMOS LAS LISTAS DE LISTAS Y LISTAS DE DETALLES PARA CADA MODELO
 
+#Hemos decidido no crear vistas para los modelos Comentario y Alergeno:
+# -Comentario: no tiene sentido por si solo, siempre va de una foto o de una reseña así que se consulta desde la vista de detalle de esa foto o reseña
+# -Alergeno: solo sirve para etiquetar restaurantes, que es donde se consulta
+
+
 #Pagina principal 
 def index(request):
     return render(request, 'index.html')
