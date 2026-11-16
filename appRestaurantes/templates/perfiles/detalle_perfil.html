@@ -4,108 +4,133 @@
 
 {% block contenido %}
 
-{% if perfil.imagen_src %}
-<img src="{{ perfil.imagen_src }}" alt="Foto de {{ perfil }}" width="120">
-{% endif %}
+<!-- cabecera estilo instagram: foto redonda, nombre, contadores y biografía -->
+<section class="perfil-insta">
+    {% if perfil.imagen_src %}
+    <img class="avatar enorme" src="{{ perfil.imagen_src }}" alt="Foto de {{ perfil }}">
+    {% else %}
+    <div class="avatar enorme">{{ perfil.usuario.username|first|upper }}</div>
+    {% endif %}
 
-<h1>{{ perfil }}</h1>
+    <div class="info">
+        <div class="fila" style="flex-wrap:wrap">
+            <h1 style="margin:0">{{ perfil }}</h1>
+            <!-- el botón de seguir funcionará cuando haya login -->
+            <span class="boton">Seguir</span>
+        </div>
 
-{% if perfil.biografia %}
-<p>{{ perfil.biografia }}</p>
-{% endif %}
+        <!-- contadores: publicaciones (fotos), seguidores y seguidos -->
+        <div class="contadores">
+            <span><strong>{{ perfil.fotos.count }}</strong> publicaciones</span>
+            <span><strong>{{ perfil.seguidores.count }}</strong> seguidores</span>
+            <span><strong>{{ perfil.siguiendo.count }}</strong> seguidos</span>
+            <span><strong>{{ perfil.resenas.count }}</strong> reseñas</span>
+        </div>
 
-{% if perfil.ciudad %}
-<p><strong>Ciudad:</strong> <a href="{% url 'detalle_ciudad' perfil.ciudad.id %}">{{ perfil.ciudad }}</a></p>
-{% endif %}
+        {% if perfil.biografia %}
+        <p>{{ perfil.biografia }}</p>
+        {% endif %}
 
-<p><strong>Miembro desde:</strong> {{ perfil.fecha_alta }}</p>
+        <p class="meta">
+            {% if perfil.ciudad %}📍 <a href="{% url 'detalle_ciudad' perfil.ciudad.id %}">{{ perfil.ciudad }}</a> · {% endif %}
+            Miembro desde {{ perfil.fecha_alta }}
+        </p>
 
-<p><strong>Reseñas:</strong> {{ perfil.resenas.count }} · <strong>Fotos:</strong> {{ perfil.fotos.count }}</p>
-
-
-<hr>
-
-<h2>Amigos y seguidores</h2>
-
-<!-- amigos = seguimiento mutuo (se calcula en el modelo), siguiendo y seguidores no son simétricos -->
-<p><strong>Amigos:</strong>
-    {% for p in perfil.amigos %}
-        <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        ninguno
-    {% endfor %}
-</p>
-
-<p><strong>Siguiendo:</strong>
-    {% for p in perfil.siguiendo.all %}
-        <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        a nadie
-    {% endfor %}
-</p>
-
-<p><strong>Seguidores:</strong>
-    {% for p in perfil.seguidores.all %}
-        <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        ninguno
-    {% endfor %}
-</p>
+        <!-- amigos = seguimiento mutuo (se calcula en el modelo), siguiendo y seguidores no son simétricos -->
+        <p class="meta">Amigos:
+            {% for p in perfil.amigos %}
+                <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                ninguno
+            {% endfor %}
+        </p>
+    </div>
+</section>
 
 
-<hr>
+<!-- pestañas hechas solo con CSS: cada radio enseña su panel cuando está marcado -->
+<div class="pestanas">
+    <input type="radio" name="pestana" id="tab-fotos" checked>
+    <label for="tab-fotos">▦ Fotos</label>
+    <input type="radio" name="pestana" id="tab-resenas">
+    <label for="tab-resenas">★ Reseñas</label>
+    <input type="radio" name="pestana" id="tab-likes">
+    <label for="tab-likes">♡ Me gusta</label>
+    <input type="radio" name="pestana" id="tab-red">
+    <label for="tab-red">👥 Seguidores</label>
 
-<h2>Mis reseñas</h2>
+    <!-- Mis fotos: rejilla de 3 columnas con fotos cuadradas -->
+    <div class="panel" id="panel-fotos">
+        <div class="rejilla-insta">
+            {% for foto in perfil.fotos.all %}
+            <a class="celda" href="{% url 'detalle_foto' foto.id %}">
+                <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
+                <span class="capa">♥ {{ foto.likes.count }} · 💬 {{ foto.comentarios.count }}</span>
+            </a>
+            {% empty %}
+            <p>Todavía no ha subido fotos.</p>
+            {% endfor %}
+        </div>
+    </div>
 
-{% for resena in perfil.resenas.all %}
+    <!-- Mis reseñas -->
+    <div class="panel" id="panel-resenas">
+        <div class="rejilla">
+            {% for resena in perfil.resenas.all %}
+            <div class="tarjeta">
+                <h3><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
+                {% include 'estrellas.html' with n=resena.puntuacion %}
+                <p class="meta"><a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a> · {{ resena.fecha }}</p>
+            </div>
+            {% empty %}
+            <p>Todavía no ha escrito reseñas.</p>
+            {% endfor %}
+        </div>
+    </div>
 
-<div>
-    <h3><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
+    <!-- Fotos que me gustan: fotos_gustadas viene del related_name de likes en el modelo foto -->
+    <div class="panel" id="panel-likes">
+        <div class="rejilla-insta">
+            {% for foto in perfil.fotos_gustadas.all %}
+            <a class="celda" href="{% url 'detalle_foto' foto.id %}">
+                <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
+                <span class="capa">{{ foto.restaurante.nombre }}</span>
+            </a>
+            {% empty %}
+            <p>Todavía no ha dado likes.</p>
+            {% endfor %}
+        </div>
+    </div>
 
-    <p><strong>Restaurante:</strong> <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a></p>
-
-    <p><strong>Puntuación:</strong> {{ resena.puntuacion }} / 5 ★</p>
+    <!-- Seguidores y seguidos -->
+    <div class="panel" id="panel-red">
+        <div class="dos-columnas" style="grid-template-columns:1fr 1fr">
+            <div class="tarjeta">
+                <h3>Seguidores</h3>
+                {% for p in perfil.seguidores.all %}
+                <div class="fila" style="margin-top:10px">
+                    <div class="avatar pequeno">{{ p.usuario.username|first|upper }}</div>
+                    <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>
+                </div>
+                {% empty %}
+                <p class="suave">ninguno</p>
+                {% endfor %}
+            </div>
+            <div class="tarjeta">
+                <h3>Siguiendo</h3>
+                {% for p in perfil.siguiendo.all %}
+                <div class="fila" style="margin-top:10px">
+                    <div class="avatar pequeno">{{ p.usuario.username|first|upper }}</div>
+                    <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>
+                </div>
+                {% empty %}
+                <p class="suave">a nadie</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 
-{% empty %}
-<p>Todavía no ha escrito reseñas.</p>
-{% endfor %}
-
-
-<hr>
-
-<h2>Mis fotos</h2>
-
-{% for foto in perfil.fotos.all %}
-
-<div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
-
-    <p>{{ foto.restaurante.nombre }} · ♥ {{ foto.likes.count }}</p>
-</div>
-
-{% empty %}
-<p>Todavía no ha subido fotos.</p>
-{% endfor %}
-
-
-<hr>
-
-<h2>Fotos que me gustan</h2>
-
-<!-- fotos_gustadas viene del related_name de likes en el modelo foto -->
-{% for foto in perfil.fotos_gustadas.all %}
-
-<div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" width="150"></a>
-
-    <p>{{ foto.restaurante.nombre }}</p>
-</div>
-
-{% empty %}
-<p>Todavía no ha dado likes.</p>
-{% endfor %}
-
-<p><a href="{% url 'lista_perfiles' %}">Volver a los usuarios</a></p>
+<p class="volver"><a href="{% url 'lista_perfiles' %}">← Volver a los usuarios</a></p>
 
 {% endblock %}

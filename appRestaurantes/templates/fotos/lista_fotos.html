@@ -5,28 +5,30 @@
 {% block contenido %}
 
 <h1>Galería de fotos</h1>
+<p class="subtitulo">Comida, locales y amigos</p>
 
-{% for foto in fotos %}
+<div class="rejilla" style="margin-top:20px">
 
-<div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+    {% for foto in fotos %}
+    <div class="tarjeta con-imagen">
+        <a href="{% url 'detalle_foto' foto.id %}"><img class="imagen-tarjeta" src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
 
-    <h2>{{ foto.restaurante.nombre }}</h2>
+        <div class="cuerpo">
+            <h3><a href="{% url 'detalle_restaurante' foto.restaurante.id %}">{{ foto.restaurante.nombre }}</a></h3>
 
-    <!-- likes y comentarios son relaciones, contamos cuántos hay -->
-    <p><strong>Tipo:</strong> {{ foto.get_tipo_display }}</p>
+            <span class="etiqueta">{{ foto.get_tipo_display }}</span>
 
-    <p><strong>Likes:</strong> {{ foto.likes.count }} · <strong>Comentarios:</strong> {{ foto.comentarios.count }}</p>
+            <!-- likes y comentarios son relaciones, contamos cuántos hay -->
+            <p class="meta" style="margin-top:8px">♥ {{ foto.likes.count }} · 💬 {{ foto.comentarios.count }} · por <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a></p>
+        </div>
+    </div>
 
-    <p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a></p>
+    {% empty %}
+    <p>No hay fotos registradas.</p>
+    {% endfor %}
+
 </div>
 
-<hr>
-
-{% empty %}
-<p>No hay fotos registradas.</p>
-{% endfor %}
-
-<a href="{% url 'index' %}">Volver al inicio</a>
+<p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 
 {% endblock %}

@@ -5,25 +5,30 @@
 {% block contenido %}
 
 <h1>Reseñas</h1>
+<p class="subtitulo">Lo que opinan los usuarios, de la más reciente a la más antigua</p>
 
-{% for resena in resenas %}
+<div class="rejilla" style="margin-top:20px">
 
-<div>
-    <h2><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h2>
+    {% for resena in resenas %}
+    <div class="tarjeta">
+        <h2><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h2>
 
-    <p><strong>Restaurante:</strong> <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a></p>
+        {% include 'estrellas.html' with n=resena.puntuacion %}
 
-    <p><strong>Puntuación:</strong> {{ resena.puntuacion }} / 5 ★</p>
+        <p class="meta">
+            <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a>
+            · por <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>
+        </p>
 
-    <p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a></p>
+        <p>{{ resena.texto|truncatewords:20 }}</p>
+    </div>
+
+    {% empty %}
+    <p>No hay reseñas registradas.</p>
+    {% endfor %}
+
 </div>
 
-<hr>
-
-{% empty %}
-<p>No hay reseñas registradas.</p>
-{% endfor %}
-
-<a href="{% url 'index' %}">Volver al inicio</a>
+<p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 
 {% endblock %}

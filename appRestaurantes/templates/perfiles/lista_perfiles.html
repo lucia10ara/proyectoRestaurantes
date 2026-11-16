@@ -5,28 +5,36 @@
 {% block contenido %}
 
 <h1>Usuarios</h1>
+<p class="subtitulo">La gente que comparte sus reseñas y fotos</p>
 
-{% for p in perfiles %}
+<div class="rejilla" style="margin-top:20px">
 
-<div>
-    <!-- la foto de perfil es opcional -->
-    {% if p.imagen_src %}
-    <img src="{{ p.imagen_src }}" alt="Foto de {{ p }}" width="80">
-    {% endif %}
+    {% for p in perfiles %}
+    <div class="tarjeta">
+        <div class="fila">
+            <!-- la foto de perfil es opcional, si no hay ponemos la inicial -->
+            {% if p.imagen_src %}
+            <img class="avatar" src="{{ p.imagen_src }}" alt="Foto de {{ p }}">
+            {% else %}
+            <div class="avatar">{{ p.usuario.username|first|upper }}</div>
+            {% endif %}
 
-    <h2><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a></h2>
+            <h2><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a></h2>
+        </div>
 
-    {% if p.biografia %}
-    <p><strong>Biografía:</strong> {{ p.biografia }}</p>
-    {% endif %}
+        {% if p.biografia %}
+        <p style="margin-top:10px">{{ p.biografia }}</p>
+        {% endif %}
+
+        <p class="meta">{{ p.resenas.count }} reseña{{ p.resenas.count|pluralize }} · {{ p.fotos.count }} foto{{ p.fotos.count|pluralize }}</p>
+    </div>
+
+    {% empty %}
+    <p>No hay usuarios registrados.</p>
+    {% endfor %}
+
 </div>
 
-<hr>
-
-{% empty %}
-<p>No hay usuarios registrados.</p>
-{% endfor %}
-
-<a href="{% url 'index' %}">Volver al inicio</a>
+<p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 
 {% endblock %}

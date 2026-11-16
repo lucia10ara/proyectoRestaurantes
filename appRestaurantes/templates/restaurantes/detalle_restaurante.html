@@ -4,74 +4,87 @@
 
 {% block contenido %}
 
-<h1>{{ restaurante.nombre }}</h1>
-
 <!-- foto de portada, solo si el restaurante tiene -->
 {% if restaurante.imagen_src %}
-<img src="{{ restaurante.imagen_src }}" alt="Portada de {{ restaurante.nombre }}" style="max-width: 400px;">
+<img class="imagen-grande" src="{{ restaurante.imagen_src }}" alt="Portada de {{ restaurante.nombre }}">
 {% endif %}
 
-<hr>
+<div class="dos-columnas">
 
-<p><strong>Ciudad:</strong> <a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
+    <div>
+        <h1>{{ restaurante.nombre }}</h1>
+        <!-- nota media (se calcula en la vista) -->
+        <p>{% include 'estrellas.html' with n=estrellas grande=True %} {% if media %}<strong>{{ media|floatformat:1 }}</strong> · {{ restaurante.resenas.count }} reseña{{ restaurante.resenas.count|pluralize }}{% else %}<span class="meta">Sin reseñas todavía</span>{% endif %}</p>
+        <p class="subtitulo">{{ restaurante.tipo_cocina }} · {{ restaurante.direccion }}, <a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
 
-<p><strong>Cocina:</strong> {{ restaurante.tipo_cocina }}</p>
+        {% if restaurante.descripcion %}
+        <p>{{ restaurante.descripcion }}</p>
+        {% endif %}
 
-<p><strong>Dirección:</strong> {{ restaurante.direccion }}</p>
+        <h2>Reseñas</h2>
 
-<p><strong>Admite niños:</strong> {{ restaurante.admite_ninos|yesno:"sí,no" }}</p>
+        {% for resena in restaurante.resenas.all %}
+        <div class="tarjeta">
+            <div class="fila">
+                <div class="avatar">{{ resena.autor.usuario.username|first|upper }}</div>
+                <div>
+                    <strong><a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a></strong>
+                    <div class="meta">{{ resena.fecha }}</div>
+                </div>
+            </div>
 
-<p><strong>Admite perros:</strong> {{ restaurante.admite_perros|yesno:"sí,no" }}</p>
+            <h3 style="margin-top:12px"><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
+            {% include 'estrellas.html' with n=resena.puntuacion %}
+            <p>{{ resena.texto|truncatewords:30 }}</p>
+        </div>
 
-<!-- relación muchos a muchos con alérgenos -->
-<p><strong>Opciones sin:</strong>
-    {% for a in restaurante.opciones_sin_alergenos.all %}
-        {{ a.nombre }}{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        no indicado
-    {% endfor %}
-</p>
+        {% empty %}
+        <p>Todavía no hay reseñas.</p>
+        {% endfor %}
+    </div>
 
-{% if restaurante.descripcion %}
-<p>{{ restaurante.descripcion }}</p>
-{% endif %}
+    <aside>
+        <div class="tarjeta">
+            <h3>Información</h3>
+            <dl class="datos">
+                <dt>Ciudad</dt><dd><a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></dd>
+                <dt>Cocina</dt><dd>{{ restaurante.tipo_cocina }}</dd>
+                <dt>Dirección</dt><dd>{{ restaurante.direccion }}</dd>
+            </dl>
 
+            <div class="etiquetas">
+                <span class="etiqueta {{ restaurante.admite_ninos|yesno:'si,no' }}">👶 Admite niños: {{ restaurante.admite_ninos|yesno:"sí,no" }}</span>
+                <span class="etiqueta {{ restaurante.admite_perros|yesno:'si,no' }}">🐶 Admite perros: {{ restaurante.admite_perros|yesno:"sí,no" }}</span>
+            </div>
 
-<hr>
+            <!-- relación muchos a muchos con alérgenos -->
+            <h3 style="margin-top:14px">Opciones sin</h3>
+            <div class="etiquetas">
+                {% for a in restaurante.opciones_sin_alergenos.all %}
+                <span class="etiqueta">{{ a.nombre }}</span>
+                {% empty %}
+                <span class="suave">no indicado</span>
+                {% endfor %}
+            </div>
+        </div>
 
-<h2>Reseñas</h2>
+        <div class="tarjeta">
+            <h3>Fotos</h3>
+            <div class="rejilla-fotos" style="grid-template-columns: 1fr 1fr; margin-top:10px">
+                {% for foto in restaurante.fotos.all %}
+                <div>
+                    <a href="{% url 'detalle_foto' foto.id %}"><img class="imagen-foto" style="height:110px" src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
+                    <p class="meta">♥ {{ foto.likes.count }} · {{ foto.get_tipo_display }}</p>
+                </div>
+                {% empty %}
+                <p class="suave">Todavía no hay fotos.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
 
-{% for resena in restaurante.resenas.all %}
-
-<div>
-    <h3><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
-
-    <p><strong>Puntuación:</strong> {{ resena.puntuacion }} / 5 ★</p>
-
-    <p><strong>Autor:</strong> <a href="{% url 'detalle_perfil' resena.autor.id %}">{{ resena.autor }}</a>, {{ resena.fecha }}</p>
 </div>
 
-{% empty %}
-<p>Todavía no hay reseñas.</p>
-{% endfor %}
-
-
-<hr>
-
-<h2>Fotos</h2>
-
-{% for foto in restaurante.fotos.all %}
-
-<div>
-    <a href="{% url 'detalle_foto' foto.id %}"><img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
-
-    <p><strong>Likes:</strong> {{ foto.likes.count }} · <strong>Tipo:</strong> {{ foto.get_tipo_display }}</p>
-</div>
-
-{% empty %}
-<p>Todavía no hay fotos.</p>
-{% endfor %}
-
-<p><a href="{% url 'lista_restaurantes' %}">Volver al listado de restaurantes</a></p>
+<p class="volver"><a href="{% url 'lista_restaurantes' %}">← Volver al listado de restaurantes</a></p>
 
 {% endblock %}

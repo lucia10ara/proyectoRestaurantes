@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 
@@ -7,33 +8,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}Restaurantes de España{% endblock %}</title>
 
-    <!--hemos añadido un pequeño style para que las imagenes que subimos no ocupen toda la pantalla-->
-    <style>
-        img { max-width: 300px; height: auto; }
-    </style>
+    <!-- hoja de estilos común a toda la web (está en la carpeta static/css) -->
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 </head>
 
 <body>
 
-    <nav> <!-- barra de navegación (la extienden desde su html) -->
-        <a href="{% url 'index' %}">Inicio</a> | <!--la pagina principal-->
+    <!-- barra de navegación (la extienden desde su html) -->
+    <!-- url_name nos dice en qué página estamos para marcar el enlace activo -->
+    {% with pagina=request.resolver_match.url_name|default:'' %}
+    <nav class="barra">
+        <a class="logo" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
 
         <!-- enlaces a las distintas secciones de la web -->
-        <a href="{% url 'lista_ciudades' %}">Ciudades</a> |
-        <a href="{% url 'lista_restaurantes' %}">Restaurantes</a> |
-        <a href="{% url 'lista_resenas' %}">Reseñas</a> |
-        <a href="{% url 'lista_fotos' %}">Fotos</a> |
-        <a href="{% url 'lista_perfiles' %}">Perfiles</a> |
+        <div class="enlaces">
+            <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}">Inicio</a>
+            <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}">Explorar</a>
+            <a href="{% url 'lista_ciudades' %}" class="{% if 'ciudad' in pagina %}activo{% endif %}">Ciudades</a>
+            <a href="{% url 'lista_restaurantes' %}" class="{% if 'restaurante' in pagina %}activo{% endif %}">Restaurantes</a>
+            <a href="{% url 'lista_resenas' %}" class="{% if 'resena' in pagina %}activo{% endif %}">Reseñas</a>
+            <a href="{% url 'lista_fotos' %}" class="{% if 'foto' in pagina %}activo{% endif %}">Fotos</a>
+            <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}">Perfiles</a>
+        </div>
 
         <!-- enlace al admin de django -->
-        <a href="/admin/">Administración</a>
+        <a class="boton" href="/admin/">Administración</a>
     </nav>
 
-    <hr>
-
     <!--aqui se mete el contenido de cada pag -->
-    {% block contenido %}{% endblock %}
+    <main class="contenido">
+        {% block contenido %}{% endblock %}
+    </main>
 
+    <footer class="pie">Restaurantes de España · Proyecto de Ingeniería Web</footer>
+
+    <!-- barra inferior solo para móvil (como la de instagram), en ordenador está oculta con CSS -->
+    <nav class="barra-movil">
+        <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}"><span>⌂</span>Inicio</a>
+        <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}"><span>⌕</span>Explorar</a>
+        <a href="/admin/appRestaurantes/resena/add/"><span>＋</span>Reseña</a>
+        <a href="{% url 'lista_restaurantes' %}" class="{% if 'restaurante' in pagina %}activo{% endif %}"><span>🍽</span>Sitios</a>
+        <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}"><span>☺</span>Perfiles</a>
+    </nav>
+
+    {% endwith %}
 </body>
 
 </html>

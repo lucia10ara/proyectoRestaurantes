@@ -5,26 +5,28 @@
 {% block contenido %}
 
 <h1>Ciudades</h1>
+<p class="subtitulo">Elige una ciudad para ver sus restaurantes</p>
 
-<!-- recorremos todas las ciudades que nos pasa la vista -->
-{% for c in ciudades %}
+<div class="rejilla" style="margin-top:20px">
 
-<div>
-    <h2><a href="{% url 'detalle_ciudad' c.id %}">{{ c.nombre }}</a></h2>
+    <!-- recorremos todas las ciudades que nos pasa la vista -->
+    {% for c in ciudades %}
+    <div class="tarjeta">
+        <h2><a href="{% url 'detalle_ciudad' c.id %}">{{ c.nombre }}</a></h2>
 
-    {% if c.comunidad %}
-    <p><strong>Comunidad:</strong> {{ c.comunidad }}</p>
-    {% endif %}
+        {% if c.comunidad %}
+        <p class="meta">{{ c.comunidad }}</p>
+        {% endif %}
 
-    <p><strong>Restaurantes:</strong> {{ c.restaurantes.count }}</p>
+        <p><strong>{{ c.restaurantes.count }}</strong> restaurante{{ c.restaurantes.count|pluralize }}</p>
+    </div>
+
+    {% empty %}
+    <p>No hay ciudades registradas.</p>
+    {% endfor %}
+
 </div>
 
-<hr>
-
-{% empty %}
-<p>No hay ciudades registradas.</p>
-{% endfor %}
-
-<a href="{% url 'index' %}">Volver al inicio</a>
+<p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 
 {% endblock %}

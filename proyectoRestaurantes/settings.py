@@ -74,6 +74,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Carpetas donde Django buscará los archivos estáticos (CSS, JS, imágenes)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 #Archivos que suben los usuarios (fotos desde el ordenador)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'

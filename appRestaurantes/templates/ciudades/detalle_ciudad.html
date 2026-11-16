@@ -7,26 +7,35 @@
 <h1>{{ ciudad.nombre }}</h1>
 
 {% if ciudad.comunidad %}
-<p>{{ ciudad.comunidad }}</p>
+<p class="subtitulo">{{ ciudad.comunidad }}</p>
 {% endif %}
-
-<hr>
 
 <h2>Restaurantes</h2>
 
-<!-- restaurantes de esta ciudad (relación uno a muchos) -->
-{% for r in ciudad.restaurantes.all %}
+<div class="rejilla">
 
-<div>
-    <h3><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h3>
+    <!-- restaurantes de esta ciudad (relación uno a muchos) -->
+    {% for r in ciudad.restaurantes.all %}
+    <div class="tarjeta con-imagen">
+        <a href="{% url 'detalle_restaurante' r.id %}">
+            {% if r.imagen_src %}
+            <img class="imagen-tarjeta" src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}">
+            {% else %}
+            <div class="sin-imagen">🍽</div>
+            {% endif %}
+        </a>
+        <div class="cuerpo">
+            <h3><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h3>
+            <p class="meta">{{ r.tipo_cocina }}</p>
+        </div>
+    </div>
 
-    <p><strong>Cocina:</strong> {{ r.tipo_cocina }}</p>
+    {% empty %}
+    <p>Todavía no hay restaurantes en esta ciudad.</p>
+    {% endfor %}
+
 </div>
 
-{% empty %}
-<p>Todavía no hay restaurantes en esta ciudad.</p>
-{% endfor %}
-
-<p><a href="{% url 'lista_ciudades' %}">Volver al listado de ciudades</a></p>
+<p class="volver"><a href="{% url 'lista_ciudades' %}">← Volver al listado de ciudades</a></p>
 
 {% endblock %}

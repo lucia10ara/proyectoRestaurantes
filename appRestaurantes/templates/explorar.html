@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Explorar{% endblock %}
+
+{% block contenido %}
+
+<h1>Explorar</h1>
+<p class="subtitulo">Fotos de todos los usuarios. Filtra para encontrar sitios que se adapten a ti.</p>
+
+{% include 'filtros.html' %}
+
+<p class="meta">{{ fotos|length }} foto{{ fotos|length|pluralize }}</p>
+
+<!-- rejilla de fotos cuadradas (como el explorar de instagram), al pasar el ratón salen los likes -->
+<div class="rejilla-insta">
+    {% for foto in fotos %}
+    <a class="celda" href="{% url 'detalle_foto' foto.id %}">
+        <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
+        <span class="capa">♥ {{ foto.num_likes }} · {{ foto.restaurante.nombre }}</span>
+    </a>
+    {% empty %}
+    <p>No hay fotos con esos filtros.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -5,30 +5,50 @@
 {% block contenido %}
 
 <h1>Restaurantes</h1>
+<p class="subtitulo">Busca y filtra por ciudad, alérgenos, niños o perros</p>
 
-{% for r in restaurantes %}
+{% include 'filtros.html' with con_buscador=True %}
 
-<div>
-    {% if r.imagen_src %}
-    <a href="{% url 'detalle_restaurante' r.id %}"><img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}" width="200"></a>
-    {% endif %}
+<p class="meta">{{ restaurantes|length }} restaurante{{ restaurantes|length|pluralize }}</p>
 
-    <h2><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h2>
+<div class="rejilla" style="margin-top:12px">
 
-    <p><strong>Cocina:</strong> {{ r.tipo_cocina }}</p>
+    {% for r in restaurantes %}
+    <div class="tarjeta con-imagen">
+        <a href="{% url 'detalle_restaurante' r.id %}">
+            {% if r.imagen_src %}
+            <img class="imagen-tarjeta" src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}">
+            {% else %}
+            <div class="sin-imagen">🍽</div>
+            {% endif %}
+        </a>
 
-    <p><strong>Ciudad:</strong> {{ r.ciudad.nombre }}</p>
+        <div class="cuerpo">
+            <h2><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h2>
 
-    <!-- yesno convierte el booleano en sí o no -->
-    <p><strong>Niños:</strong> {{ r.admite_ninos|yesno:"sí,no" }} · <strong>Perros:</strong> {{ r.admite_perros|yesno:"sí,no" }}</p>
+            <p class="meta">{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</p>
+
+            <!-- nota media calculada en la vista con Avg -->
+            <p>
+                {% include 'estrellas.html' with n=r.estrellas %}
+                {% if r.media %}<strong>{{ r.media|floatformat:1 }}</strong>{% endif %}
+                <span class="meta">({{ r.num_resenas }} reseña{{ r.num_resenas|pluralize }})</span>
+            </p>
+
+            <!-- yesno convierte el booleano en sí o no -->
+            <div class="etiquetas">
+                <span class="etiqueta {{ r.admite_ninos|yesno:'si,no' }}">👶 Niños: {{ r.admite_ninos|yesno:"sí,no" }}</span>
+                <span class="etiqueta {{ r.admite_perros|yesno:'si,no' }}">🐶 Perros: {{ r.admite_perros|yesno:"sí,no" }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% empty %}
+    <p>No hay restaurantes con esos filtros.</p>
+    {% endfor %}
+
 </div>
 
-<hr>
-
-{% empty %}
-<p>No hay restaurantes registrados.</p>
-{% endfor %}
-
-<a href="{% url 'index' %}">Volver al inicio</a>
+<p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 
 {% endblock %}

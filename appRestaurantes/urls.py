@@ -7,6 +7,9 @@ urlpatterns = [
     #pagina principal (index)
     path('', views.index, name='index'),
 
+    #explorar: rejilla de fotos con filtros (como el explorar de instagram)
+    path('explorar/', views.explorar, name='explorar'),
+
     #Restaurantes----------
     #/appRestaurantes/restaurantes/ -> lista de restaurantes
     path('restaurantes/', views.lista_restaurantes, name='lista_restaurantes'),

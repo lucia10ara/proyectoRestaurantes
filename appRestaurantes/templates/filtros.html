@@ -1,0 +1,43 @@
+{# trozo reutilizable: formulario de filtros (ciudad, niños, perros, alérgenos). Se usa en explorar y en la lista de restaurantes #}
+<form class="filtros" method="get">
+    {% if con_buscador %}
+    <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="🔍 Buscar por nombre o tipo de cocina…">
+    {% endif %}
+
+    <select name="ciudad">
+        <option value="">Todas las ciudades</option>
+        {% for c in ciudades %}
+        <option value="{{ c.id }}" {% if filtros.ciudad == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="alergeno">
+        <option value="">Opciones sin… (alérgenos)</option>
+        {% for a in alergenos %}
+        <option value="{{ a.id }}" {% if filtros.alergeno == a.id|stringformat:"s" %}selected{% endif %}>Sin {{ a.nombre|lower }}</option>
+        {% endfor %}
+    </select>
+
+    {% if tipos %}
+    <select name="tipo">
+        <option value="">Todo tipo de fotos</option>
+        {% for valor, nombre in tipos %}
+        <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ nombre }}</option>
+        {% endfor %}
+    </select>
+    {% endif %}
+
+    <!-- las casillas se ven como etiquetas que se marcan -->
+    <label class="chip"><input type="checkbox" name="ninos" value="1" {% if filtros.ninos %}checked{% endif %}> 👶 Niños</label>
+    <label class="chip"><input type="checkbox" name="perros" value="1" {% if filtros.perros %}checked{% endif %}> 🐶 Perros</label>
+
+    {% if con_buscador %}
+    <select name="orden">
+        <option value="">Mejor valorados</option>
+        <option value="nombre" {% if filtros.orden == 'nombre' %}selected{% endif %}>Por nombre</option>
+    </select>
+    {% endif %}
+
+    <button class="boton" type="submit">Filtrar</button>
+    {% if filtros %}<a class="meta" href="?">Quitar filtros</a>{% endif %}
+</form>
