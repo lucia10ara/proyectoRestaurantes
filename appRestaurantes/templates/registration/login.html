@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Iniciar sesión{% endblock %}
+
+{% block contenido %}
+
+<div class="caja-auth tarjeta">
+    <h1>Iniciar sesión</h1>
+    <p class="suave">Entra para ver las publicaciones de tus amigos y de la gente a la que sigues.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <ul class="errores">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        <div class="campo">
+            <label for="{{ form.username.id_for_label }}">Usuario</label>
+            {{ form.username }}
+        </div>
+        <div class="campo">
+            <label for="{{ form.password.id_for_label }}">Contraseña</label>
+            {{ form.password }}
+        </div>
+
+        <!-- a dónde ir después de entrar (lo rellena Django si veníamos de una página protegida) -->
+        <input type="hidden" name="next" value="{{ next }}">
+        <button class="boton" type="submit">Entrar</button>
+    </form>
+
+    <p class="meta" style="margin-top:16px">¿No tienes cuenta? <a href="{% url 'registro' %}">Créala aquí</a></p>
+</div>
+
+{% endblock %}

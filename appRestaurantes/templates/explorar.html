@@ -9,14 +9,19 @@
 
 {% include 'filtros.html' %}
 
+{% if ciudad_propia %}
+<p class="meta">📍 Te enseñamos primero las fotos de tu ciudad (<strong>{{ ciudad_propia }}</strong>). Para verlas todas, elige «Todas las ciudades» y pulsa Filtrar.</p>
+{% endif %}
+
 <p class="meta">{{ fotos|length }} foto{{ fotos|length|pluralize }}</p>
 
-<!-- rejilla de fotos cuadradas (como el explorar de instagram), al pasar el ratón salen los likes -->
-<div class="rejilla-insta">
+<!-- fotos apaisadas con el nombre del restaurante y los datos debajo -->
+<div class="tira-fotos grande">
     {% for foto in fotos %}
-    <a class="celda" href="{% url 'detalle_foto' foto.id %}">
+    <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
         <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
-        <span class="capa">♥ {{ foto.num_likes }} · {{ foto.restaurante.nombre }}</span>
+        <span>{{ foto.restaurante.nombre }}</span>
+        <small class="meta">{{ foto.restaurante.ciudad.nombre }} · {{ foto.get_tipo_display }} · ♥ {{ foto.num_likes }}</small>
     </a>
     {% empty %}
     <p>No hay fotos con esos filtros.</p>

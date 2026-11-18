@@ -31,8 +31,22 @@
             <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}">Perfiles</a>
         </div>
 
-        <!-- enlace al admin de django -->
-        <a class="boton" href="/admin/">Administración</a>
+        <!-- zona de usuario: si ha entrado, su perfil y salir; si no, entrar o crear cuenta -->
+        <div class="usuario">
+            {% if user.is_authenticated %}
+                {% if user.perfil %}<a class="mi-perfil" href="{% url 'detalle_perfil' user.perfil.id %}">👤 {{ user.username }}</a>
+                {% else %}<span class="mi-perfil">👤 {{ user.username }}</span>{% endif %}
+                {% if user.is_staff %}<a class="boton boton-secundario" href="/admin/">Administración</a>{% endif %}
+                <!-- Django solo deja cerrar sesión con POST -->
+                <form method="post" action="{% url 'logout' %}" style="display:inline">
+                    {% csrf_token %}
+                    <button class="boton" type="submit">Salir</button>
+                </form>
+            {% else %}
+                <a class="mi-perfil" href="{% url 'login' %}">Iniciar sesión</a>
+                <a class="boton" href="{% url 'registro' %}">Crear cuenta</a>
+            {% endif %}
+        </div>
     </nav>
 
     <!--aqui se mete el contenido de cada pag -->
@@ -46,9 +60,13 @@
     <nav class="barra-movil">
         <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}"><span>⌂</span>Inicio</a>
         <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}"><span>⌕</span>Explorar</a>
-        <a href="/admin/appRestaurantes/resena/add/"><span>＋</span>Reseña</a>
         <a href="{% url 'lista_restaurantes' %}" class="{% if 'restaurante' in pagina %}activo{% endif %}"><span>🍽</span>Sitios</a>
         <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}"><span>☺</span>Perfiles</a>
+        {% if user.is_authenticated and user.perfil %}
+        <a href="{% url 'detalle_perfil' user.perfil.id %}"><span>👤</span>Yo</a>
+        {% else %}
+        <a href="{% url 'login' %}"><span>👤</span>Entrar</a>
+        {% endif %}
     </nav>
 
     {% endwith %}

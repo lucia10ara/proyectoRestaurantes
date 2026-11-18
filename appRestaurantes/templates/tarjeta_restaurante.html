@@ -1,0 +1,30 @@
+<!-- tarjeta de restaurante "lado a lado": foto a la izquierda, datos a la derecha. Se usa en el inicio y en la lista de restaurantes.
+     Necesita que el restaurante venga con media, num_resenas y estrellas (los calcula la vista con Avg y Count) -->
+<article class="resto">
+    <a class="resto-foto" href="{% url 'detalle_restaurante' r.id %}">
+        {% if r.imagen_src %}
+        <img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}">
+        {% else %}
+        <span class="sin-imagen">🍽</span>
+        {% endif %}
+    </a>
+
+    <div class="resto-info">
+        <p class="meta">{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</p>
+        <h3><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h3>
+
+        <p>
+            {% include 'estrellas.html' with n=r.estrellas %}
+            {% if r.media %}<strong>{{ r.media|floatformat:1 }}</strong>{% endif %}
+            <span class="meta">({{ r.num_resenas }} reseña{{ r.num_resenas|pluralize }})</span>
+        </p>
+
+        <!-- yesno convierte el booleano en sí o no -->
+        <div class="etiquetas">
+            <span class="etiqueta {{ r.admite_ninos|yesno:'si,no' }}">👶 Niños: {{ r.admite_ninos|yesno:"sí,no" }}</span>
+            <span class="etiqueta {{ r.admite_perros|yesno:'si,no' }}">🐶 Perros: {{ r.admite_perros|yesno:"sí,no" }}</span>
+        </div>
+
+        <a class="boton boton-secundario" href="{% url 'detalle_restaurante' r.id %}">Ver restaurante</a>
+    </div>
+</article>

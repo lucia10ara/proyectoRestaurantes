@@ -32,6 +32,8 @@ class Perfil(models.Model):
     
     fecha_alta = models.DateField(auto_now_add=True)  #dia en que se registró, se pone solo
     siguiendo = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='seguidores')  #gente a la que sigo, no tiene por qué seguirme de vuelta
+    lleva_ninos = models.BooleanField('Suelo ir con niños', default=False)  #preferencia del usuario: ya estaba en la base de datos (migración 0006)
+    lleva_perros = models.BooleanField('Suelo ir con perro', default=False)  #preferencia del usuario: ya estaba en la base de datos (migración 0006)
 
     class Meta:  
         verbose_name = "Perfil"

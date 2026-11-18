@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from . import views
 
 #index y listas de listas y detalles de cada modelo 
@@ -6,6 +7,11 @@ from . import views
 urlpatterns = [
     #pagina principal (index)
     path('', views.index, name='index'),
+
+    #Sesión: entrar, salir (Django exige POST para salir) y crear cuenta
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('registro/', views.registro, name='registro'),
 
     #explorar: rejilla de fotos con filtros (como el explorar de instagram)
     path('explorar/', views.explorar, name='explorar'),
@@ -33,4 +39,5 @@ urlpatterns = [
     #Perfiles------------------
     path('perfiles/', views.lista_perfiles, name='lista_perfiles'),
     path('perfiles/<int:pk>/', views.detalle_perfil, name='detalle_perfil'),
+    path('perfiles/<int:pk>/seguir/', views.seguir, name='seguir'),  #seguir / dejar de seguir (solo POST)
 ]

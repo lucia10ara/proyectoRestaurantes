@@ -1,6 +1,10 @@
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import Round
-from django.shortcuts import render, get_object_or_404
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from .forms import RegistroForm
 from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno
 
 # Create your views here.
@@ -12,22 +16,72 @@ from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno
 # -Alergeno: solo sirve para etiquetar restaurantes, que es donde se consulta
 
 
-#Pagina principal (estilo red social: "stories" de restaurantes arriba y un feed de fotos)
-def index(request):
-    #stories: los restaurantes mejor valorados (Avg calcula la media de las puntuaciones de sus reseñas)
-    destacados = (Restaurante.objects.annotate(media=Avg('resenas__puntuacion'))
-                  .order_by('-media', 'nombre')[:10])
+#perfil del usuario que ha iniciado sesión (None si no ha entrado o si es un usuario sin perfil, p. ej. creado a mano en el admin)
+def perfil_actual(request):
+    if request.user.is_authenticated:
+        return Perfil.objects.select_related('ciudad').filter(usuario=request.user).first()
+    return None
 
-    #feed: las fotos más recientes con su autor, restaurante y comentarios
-    #select_related y prefetch_related traen los datos relacionados de golpe para no hacer muchas consultas
-    publicaciones = (Foto.objects.select_related('autor__usuario', 'restaurante', 'resena')
-                     .prefetch_related('comentarios__autor__usuario', 'likes')[:12])
+
+#Registro: crea el usuario y su perfil, y lo deja con la sesión iniciada
+def registro(request):
+    if request.user.is_authenticated:
+        return redirect('index')
+    form = RegistroForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        usuario = form.save()
+        login(request, usuario)
+        return redirect('index')
+    return render(request, 'registration/registro.html', {'form': form})
+
+
+#Seguir / dejar de seguir a un perfil (solo POST y solo con sesión iniciada)
+@login_required
+@require_POST
+def seguir(request, pk):
+    yo = perfil_actual(request)
+    otro = get_object_or_404(Perfil, pk=pk)
+    if yo and yo != otro:  #no se puede seguir a uno mismo
+        if yo.siguiendo.filter(pk=otro.pk).exists():
+            yo.siguiendo.remove(otro)
+        else:
+            yo.siguiendo.add(otro)
+    return redirect('detalle_perfil', pk=pk)
+
+
+#Pagina principal: portada con cifras, los restaurantes mejor valorados (tarjetas lado a lado), últimas fotos y reseñas
+def index(request):
+    #los restaurantes mejor valorados (Avg calcula la media de las puntuaciones de sus reseñas)
+    #estrellas = media redondeada, para pintarlas (igual que en la lista de restaurantes)
+    destacados = (Restaurante.objects.select_related('ciudad')
+                  .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
+                  .annotate(estrellas=Round('media'))
+                  .order_by('-media', 'nombre')[:6])
+
+    #select_related trae los datos relacionados de golpe para no hacer muchas consultas
+    ultimas_fotos = Foto.objects.select_related('restaurante').annotate(num_likes=Count('likes'))[:8]
+
+    #si hay sesión, el feed son las fotos de la gente a la que sigo (los amigos son seguidos mutuos, así que ya están incluidos)
+    yo = perfil_actual(request)
+    feed = []
+    if yo:
+        amigos_ids = set(yo.amigos.values_list('id', flat=True))
+        feed = list(Foto.objects.filter(autor__in=yo.siguiendo.all())
+                    .select_related('autor__usuario', 'restaurante').annotate(num_likes=Count('likes'))[:12])
+        for foto in feed:
+            foto.es_amigo = foto.autor_id in amigos_ids  #para poner la etiqueta "amigo" en la plantilla
 
     context = {
+        'mi_perfil': yo,
+        'feed': feed,
         'destacados': destacados,
-        'publicaciones': publicaciones,
-        'ultimas_resenas': Resena.objects.select_related('autor__usuario', 'restaurante')[:3],
+        'ultimas_fotos': ultimas_fotos,
+        'ultimas_resenas': Resena.objects.select_related('autor__usuario', 'restaurante')[:4],
         'perfiles': Perfil.objects.select_related('usuario')[:5],
+        #cifras de la portada
+        'total_restaurantes': Restaurante.objects.count(),
+        'total_resenas': Resena.objects.count(),
+        'total_fotos': Foto.objects.count(),
     }
     return render(request, 'index.html', context)
 
@@ -37,14 +91,25 @@ def explorar(request):
     fotos = Foto.objects.select_related('restaurante__ciudad').annotate(num_likes=Count('likes'))
 
     #los filtros llegan en la URL, por ejemplo /explorar/?ciudad=1&ninos=1
-    ciudad = request.GET.get('ciudad')
-    alergeno = request.GET.get('alergeno')
-    tipo = request.GET.get('tipo')
+    #solo guardamos los que traen algo (un select sin elegir llega vacío)
+    filtros = {k: v for k, v in request.GET.items() if v}
+
+    #si el usuario tiene ciudad y entra sin filtros, le enseñamos primero las fotos de su ciudad
+    #(para ver todas elige "Todas las ciudades": llega ?ciudad= vacío y no se aplica el valor por defecto)
+    yo = perfil_actual(request)
+    ciudad_propia = None
+    if not request.GET and yo and yo.ciudad_id:
+        ciudad_propia = yo.ciudad
+        filtros['ciudad'] = str(yo.ciudad_id)
+
+    ciudad = filtros.get('ciudad')
+    alergeno = filtros.get('alergeno')
+    tipo = filtros.get('tipo')
     if ciudad:
         fotos = fotos.filter(restaurante__ciudad_id=ciudad)
-    if request.GET.get('ninos'):
+    if filtros.get('ninos'):
         fotos = fotos.filter(restaurante__admite_ninos=True)
-    if request.GET.get('perros'):
+    if filtros.get('perros'):
         fotos = fotos.filter(restaurante__admite_perros=True)
     if alergeno:
         fotos = fotos.filter(restaurante__opciones_sin_alergenos=alergeno)
@@ -56,7 +121,8 @@ def explorar(request):
         'ciudades': Ciudad.objects.all(),
         'alergenos': Alergeno.objects.all(),
         'tipos': Foto.TIPOS,
-        'filtros': request.GET,  #para dejar marcados los filtros elegidos
+        'filtros': filtros,  #para dejar marcados los filtros elegidos
+        'ciudad_propia': ciudad_propia,  #solo si estamos aplicando la ciudad del usuario por defecto
     }
     return render(request, 'explorar.html', context)
 
@@ -93,7 +159,7 @@ def lista_restaurantes(request):
         'restaurantes': restaurantes.distinct(),
         'ciudades': Ciudad.objects.all(),
         'alergenos': Alergeno.objects.all(),
-        'filtros': request.GET,
+        'filtros': {k: v for k, v in request.GET.items() if v},
         'q': q,
     }
     return render(request, 'restaurantes/lista_restaurantes.html', context)
@@ -142,7 +208,13 @@ def lista_perfiles(request):
 
 def detalle_perfil(request, pk):
     perfil = get_object_or_404(Perfil, pk=pk)
-    context = {'perfil': perfil}
+    yo = perfil_actual(request)
+    context = {
+        'perfil': perfil,
+        'es_el_mio': yo == perfil,
+        'lo_sigo': bool(yo) and yo.siguiendo.filter(pk=perfil.pk).exists(),
+        'me_sigue': bool(yo) and perfil.siguiendo.filter(pk=yo.pk).exists(),  #si además me sigue, somos amigos
+    }
     return render(request, 'perfiles/detalle_perfil.html', context)
 
 

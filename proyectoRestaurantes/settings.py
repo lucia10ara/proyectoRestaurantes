@@ -83,4 +83,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Inicio de sesión: a dónde va quien no ha entrado, y a dónde se vuelve tras entrar o salir
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'index'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

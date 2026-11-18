@@ -4,88 +4,84 @@
 
 {% block contenido %}
 
-<!-- "stories": círculos con los restaurantes mejor valorados (como las historias de instagram) -->
-<section class="stories">
-    {% for r in destacados %}
-    <a class="story" href="{% url 'detalle_restaurante' r.id %}">
-        <span class="aro">
-            {% if r.imagen_src %}
-            <img src="{{ r.imagen_src }}" alt="{{ r.nombre }}">
-            {% else %}
-            <span class="inicial">{{ r.nombre|first }}</span>
-            {% endif %}
-        </span>
-        <span class="nombre-story">{{ r.nombre|truncatechars:12 }}</span>
-    </a>
-    {% endfor %}
+<!-- portada: presentación y cifras -->
+<section class="portada">
+    <div>
+        <h1>Restaurantes de España</h1>
+        <p>Descubre dónde comer, lee las opiniones de otros usuarios, puntúa de 1 a 5 estrellas y comparte tus fotos de la comida, del local o con amigos.</p>
+        <p>
+            <a class="boton" href="{% url 'lista_restaurantes' %}">Ver restaurantes</a>
+            <a class="boton boton-secundario" href="{% url 'explorar' %}">Explorar fotos</a>        </p>
+    </div>
+    <div class="cifras">
+        <div><strong>{{ total_restaurantes }}</strong><span>restaurantes</span></div>
+        <div><strong>{{ total_resenas }}</strong><span>reseñas</span></div>
+        <div><strong>{{ total_fotos }}</strong><span>fotos</span></div>
+    </div>
 </section>
 
-<div class="feed-layout">
+<!-- feed personal: fotos de la gente a la que sigo (los amigos son los que me siguen de vuelta) -->
+{% if user.is_authenticated %}
+<h2>Lo último de tu gente</h2>
+{% if feed %}
+<div class="tira-fotos grande">
+    {% for foto in feed %}
+    <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
+        <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
+        <span>{{ foto.restaurante.nombre }}</span>
+        <small class="meta">de {{ foto.autor }}{% if foto.es_amigo %} <b class="amigo">amigo</b>{% endif %} · ♥ {{ foto.num_likes }}</small>
+        {% if foto.pie %}<small>{{ foto.pie|truncatechars:70 }}</small>{% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="tarjeta">
+    <p>Todavía no ves publicaciones. Empieza a seguir a otros usuarios desde su perfil y aparecerán aquí.</p>
+    <a class="boton" href="{% url 'lista_perfiles' %}">Buscar gente</a>
+</div>
+{% endif %}
+{% else %}
+<div class="tarjeta" style="margin-top:20px">
+    <h3>Tu feed, solo con la gente que te importa</h3>
+    <p class="suave">Inicia sesión para ver las publicaciones de tus amigos y de los usuarios a los que sigues.</p>
+    <a class="boton" href="{% url 'login' %}">Iniciar sesión</a>
+    <a class="boton boton-secundario" href="{% url 'registro' %}">Crear cuenta</a>
+</div>
+{% endif %}
 
-    <!-- FEED: cada foto es una publicación, con su autor, likes, pie y comentarios -->
-    <div class="feed">
-        {% for foto in publicaciones %}
-        <article class="publicacion">
+<!-- los mejor valorados, en tarjetas de dos en dos (foto a un lado, datos al otro) -->
+<h2>Mejor valorados</h2>
+<div class="rejilla-resto">
+    {% for r in destacados %}
+    {% include 'tarjeta_restaurante.html' %}
+    {% empty %}
+    <p>Todavía no hay restaurantes.</p>
+    {% endfor %}
+</div>
+<p><a href="{% url 'lista_restaurantes' %}">Ver todos los restaurantes →</a></p>
 
-            <!-- cabecera: quién la sube y en qué restaurante -->
-            <header class="fila pub-cabecera">
-                {% if foto.autor.imagen_src %}
-                <img class="avatar pequeno" src="{{ foto.autor.imagen_src }}" alt="{{ foto.autor }}">
-                {% else %}
-                <div class="avatar pequeno">{{ foto.autor.usuario.username|first|upper }}</div>
-                {% endif %}
-                <div>
-                    <strong><a href="{% url 'detalle_perfil' foto.autor.id %}">{{ foto.autor }}</a></strong>
-                    <div class="meta"><a href="{% url 'detalle_restaurante' foto.restaurante.id %}">📍 {{ foto.restaurante.nombre }}</a></div>
-                </div>
-                <span class="etiqueta pub-tipo">{{ foto.get_tipo_display }}</span>
-            </header>
+<div class="dos-columnas">
 
-            <a href="{% url 'detalle_foto' foto.id %}"><img class="pub-imagen" src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}"></a>
-
-            <div class="pub-cuerpo">
-                <!-- acciones (de momento solo muestran los números, dar like necesita login) -->
-                <div class="acciones">
-                    <span>♡ <strong>{{ foto.likes.count }}</strong> me gusta</span>
-                    <a href="{% url 'detalle_foto' foto.id %}">💬 {{ foto.comentarios.count }}</a>
-                </div>
-
-                {% if foto.pie %}
-                <p><strong>{{ foto.autor }}</strong> {{ foto.pie }}</p>
-                {% endif %}
-
-                <!-- si la foto va con una reseña, enseñamos sus estrellas -->
-                {% if foto.resena %}
-                <p class="meta">{% include 'estrellas.html' with n=foto.resena.puntuacion %} <a href="{% url 'detalle_resena' foto.resena.id %}">{{ foto.resena.titulo }}</a></p>
-                {% endif %}
-
-                <!-- los 2 primeros comentarios, y un enlace para ver el resto -->
-                {% for c in foto.comentarios.all|slice:":2" %}
-                <p class="pub-comentario"><strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong> {{ c.texto }}</p>
-                {% endfor %}
-                {% if foto.comentarios.count > 2 %}
-                <a class="meta" href="{% url 'detalle_foto' foto.id %}">Ver los {{ foto.comentarios.count }} comentarios</a>
-                {% endif %}
-
-                <p class="meta pub-fecha">{{ foto.fecha }}</p>
-            </div>
-        </article>
-
-        {% empty %}
-        <p>Todavía no hay publicaciones.</p>
-        {% endfor %}
+    <!-- últimas fotos: tira de miniaturas con el nombre del sitio debajo -->
+    <div>
+        <h2>Últimas fotos</h2>
+        <div class="tira-fotos">
+            {% for foto in ultimas_fotos %}
+            <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
+                <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
+                <span>{{ foto.restaurante.nombre }}</span>
+                <small class="meta">♥ {{ foto.num_likes }} · {{ foto.get_tipo_display }}</small>
+            </a>
+            {% empty %}
+            <p>Todavía no hay fotos.</p>
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- columna lateral: bienvenida, últimas reseñas y usuarios -->
-    <aside class="lateral">
+    <!-- columna lateral: últimas reseñas y usuarios -->
+    <aside>
+        <h2>Últimas reseñas</h2>
         <div class="tarjeta">
-            <h3>Restaurantes de España</h3>
-            <p class="suave">La red social de restaurantes: opina, puntúa de 1 a 5 estrellas y comparte tus fotos de la comida, del local o con amigos.</p>
-            <a class="boton" href="{% url 'explorar' %}">Explorar fotos</a>
-        </div>
-
-        <div class="tarjeta">
-            <h3>Últimas reseñas</h3>
             {% for resena in ultimas_resenas %}
             <div class="comentario">
                 <a href="{% url 'detalle_resena' resena.id %}"><strong>{{ resena.titulo }}</strong></a><br>
@@ -97,10 +93,10 @@
             {% endfor %}
         </div>
 
+        <h2>Usuarios</h2>
         <div class="tarjeta">
-            <h3>Usuarios</h3>
             {% for p in perfiles %}
-            <div class="fila" style="margin-top:10px">
+            <div class="fila" style="margin-bottom:10px">
                 {% if p.imagen_src %}
                 <img class="avatar pequeno" src="{{ p.imagen_src }}" alt="{{ p }}">
                 {% else %}
