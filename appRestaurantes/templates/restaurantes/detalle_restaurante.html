@@ -29,7 +29,7 @@
         </div>
         {% endif %}
 
-        <p class="subtitulo">{{ restaurante.tipo_cocina }} · {% if restaurante.direccion_visible %}{{ restaurante.direccion_visible }}, {% endif %}<a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
+        <p class="subtitulo">{{ restaurante.tipo_cocina }} · {% if restaurante.direccion_visible %}{{ restaurante.direccion_visible }}, {% endif %}<a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a>{% if restaurante.latitud and restaurante.longitud %} · <a href="{% url 'mapa' %}?foco={{ restaurante.id }}">Ver en el mapa</a>{% endif %}</p>
 
         {% if restaurante.descripcion %}
         <p style="white-space:pre-line">{{ restaurante.descripcion }}</p>

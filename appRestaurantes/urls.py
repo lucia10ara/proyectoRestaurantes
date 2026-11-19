@@ -16,6 +16,10 @@ urlpatterns = [
     #explorar: rejilla de fotos con filtros (como el explorar de instagram)
     path('explorar/', views.explorar, name='explorar'),
 
+    #mapa de restaurantes (los puntos se piden por JSON según la zona que se ve)
+    path('mapa/', views.mapa, name='mapa'),
+    path('mapa/datos/', views.mapa_datos, name='mapa_datos'),
+
     #Restaurantes----------
     #/appRestaurantes/restaurantes/ -> lista de restaurantes
     path('restaurantes/', views.lista_restaurantes, name='lista_restaurantes'),

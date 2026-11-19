@@ -1,8 +1,10 @@
+import math
 from datetime import date
 from urllib.parse import urlencode
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Max, Min, Q
+from django.urls import reverse
 from django.db.models.functions import Round
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -176,12 +178,9 @@ def lista_restaurantes(request):
     yo = perfil_actual(request)
     restaurantes = Restaurante.objects.select_related('ciudad')
 
-    #buscador: busca el texto en el nombre o en el tipo de cocina (icontains no distingue mayúsculas)
     q = request.GET.get('q', '').strip()
-    if q:
-        restaurantes = restaurantes.filter(Q(nombre__icontains=q) | Q(tipo_cocina__icontains=q))
 
-    #filtros (llegan en la URL igual que en explorar): primero se filtra y después se calculan las medias
+    #buscador y filtros (llegan en la URL igual que en explorar): primero se filtra y después se calculan las medias
     restaurantes = filtrar(restaurantes, request.GET, yo)
 
     #añadimos la nota media y el número de reseñas a cada restaurante
@@ -210,6 +209,80 @@ def lista_restaurantes(request):
         'querystring': urlencode(filtros),  #para que los enlaces de página conserven búsqueda y filtros
     }
     return render(request, 'restaurantes/lista_restaurantes.html', context)
+
+
+# Mapa ---------------
+LIMITE_MAPA = 400  #máximo de restaurantes que se mandan al navegador de una vez (al acercar el mapa salen los demás)
+
+
+def numero(valor, minimo, maximo):
+    """float de la URL, o None si no es un número válido dentro del rango (rechaza nan e infinito)."""
+    try:
+        n = float(valor)
+    except (TypeError, ValueError):
+        return None
+    return n if math.isfinite(n) and minimo <= n <= maximo else None
+
+
+def con_ubicacion(request):
+    """Restaurantes que se pueden poner en el mapa (los que tienen coordenadas) y cumplen los filtros de la URL."""
+    base = Restaurante.objects.filter(latitud__isnull=False, longitud__isnull=False)
+    return filtrar(base, request.GET, perfil_actual(request))
+
+
+def mapa(request):
+    """Página del mapa: los mismos filtros que la lista de restaurantes. Los puntos los pide el JavaScript a mapa_datos."""
+    yo = perfil_actual(request)
+    filtros = {k: v for k, v in request.GET.items() if v and k != 'foco'}
+    context = {
+        **contexto_filtros(filtros, yo),
+        'comunidades': lista_comunidades(),
+        'ciudades': ciudades_principales(request.GET.get('ciudad'), request.GET.get('comunidad')),
+        'alergenos': Alergeno.objects.all(),
+        'filtros': filtros,
+        'q': request.GET.get('q', '').strip(),
+        'querystring': urlencode(filtros),
+        'foco': numero(request.GET.get('foco'), 1, 10**9),
+    }
+    return render(request, 'mapa.html', context)
+
+
+def mapa_datos(request):
+    """JSON para el mapa.
+    ?inicial=1 -> solo la zona que ocupan los resultados (para encuadrar el mapa) y el restaurante al que enfocar (?foco=).
+    ?sur=&oeste=&norte=&este= -> los restaurantes de esa zona (máximo LIMITE_MAPA) con su nota media."""
+    qs = con_ubicacion(request)
+
+    if request.GET.get('inicial'):
+        zona = qs.aggregate(sur=Min('latitud'), norte=Max('latitud'), oeste=Min('longitud'), este=Max('longitud'), total=Count('pk'))
+        foco_id = numero(request.GET.get('foco'), 1, 10**9)
+        foco = Restaurante.objects.filter(pk=int(foco_id), latitud__isnull=False, longitud__isnull=False).first() if foco_id else None
+        return JsonResponse({
+            'total': zona['total'],
+            'zona': None if not zona['total'] else [[zona['sur'], zona['oeste']], [zona['norte'], zona['este']]],
+            'foco': {'id': foco.id, 'lat': foco.latitud, 'lon': foco.longitud} if foco else None,
+        })
+
+    sur, norte = numero(request.GET.get('sur'), -90, 90), numero(request.GET.get('norte'), -90, 90)
+    oeste, este = numero(request.GET.get('oeste'), -180, 180), numero(request.GET.get('este'), -180, 180)
+    if None in (sur, norte, oeste, este):
+        return JsonResponse({'error': 'Faltan los límites del mapa'}, status=400)
+    qs = qs.filter(latitud__range=(sur, norte), longitud__range=(oeste, este))
+
+    total = qs.count()
+    lista = list(qs.select_related('ciudad').order_by('pk')[:LIMITE_MAPA])
+    notas = {f['restaurante_id']: f for f in Resena.objects.filter(restaurante__in=lista)
+             .values('restaurante_id').annotate(media=Avg('puntuacion'), n=Count('id'))}
+    return JsonResponse({
+        'total': total,
+        'restaurantes': [{
+            'id': r.id, 'nombre': r.nombre, 'cocina': r.tipo_cocina, 'ciudad': r.ciudad.nombre,
+            'direccion': r.direccion_visible, 'lat': r.latitud, 'lon': r.longitud,
+            'media': round(notas[r.id]['media'], 1) if r.id in notas else None,
+            'resenas': notas[r.id]['n'] if r.id in notas else 0,
+            'url': reverse('detalle_restaurante', args=[r.id]),
+        } for r in lista],
+    })
 
 
 def gente_en_restaurante(yo, restaurante):

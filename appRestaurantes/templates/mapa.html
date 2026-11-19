@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Mapa de restaurantes{% endblock %}
+
+{% block contenido %}
+
+<h1>Mapa</h1>
+<p class="subtitulo">Los restaurantes de la zona que estás viendo. Mueve o acerca el mapa y se actualiza solo.</p>
+
+{% include 'filtros.html' with con_buscador=True sin_orden=True %}
+
+<div class="barra-resultados">
+    <p class="meta" id="mapa-estado" role="status" aria-live="polite">Cargando el mapa…</p>
+    <div class="vista-selector" role="group" aria-label="Forma de ver los resultados">
+        <a href="{% url 'lista_restaurantes' %}{% if querystring %}?{{ querystring }}{% endif %}">{% include 'icono.html' with n='restaurantes' %}Lista</a>
+        <span class="activo" aria-current="true">Mapa</span>
+    </div>
+</div>
+
+<!-- el mapa solo se pinta con JavaScript; sin él se enseña el enlace a la lista -->
+<div class="mapa-caja">
+    <div id="mapa" data-url="{% url 'mapa_datos' %}" {% if foco %}data-foco="{{ foco }}"{% endif %}></div>
+    <!-- la ubicación solo se pide al pulsar el botón, nunca al abrir la página -->
+    <button class="boton boton-secundario mapa-cerca" id="mapa-cerca" type="button">{% include 'icono.html' with n='lugar' %}Cerca de mí</button>
+</div>
+<noscript><p class="aviso">El mapa necesita JavaScript. Mientras tanto puedes usar la <a href="{% url 'lista_restaurantes' %}">lista de restaurantes</a>.</p></noscript>
+
+<p class="meta nota-mapa">Solo salen los restaurantes de los que conocemos la ubicación. Mapa © colaboradores de <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a>.</p>
+
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/leaflet/MarkerCluster.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/leaflet/MarkerCluster.Default.css' %}">
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'vendor/leaflet/leaflet.markercluster.js' %}"></script>
+<script src="{% static 'js/mapa.js' %}"></script>
+
+{% endblock %}

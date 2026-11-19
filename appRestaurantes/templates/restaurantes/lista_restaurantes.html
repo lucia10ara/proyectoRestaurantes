@@ -10,7 +10,14 @@
 
 {% include 'filtros.html' with con_buscador=True %}
 
-<p class="meta">{{ page_obj.paginator.count|intcomma }} restaurante{{ page_obj.paginator.count|pluralize }}</p>
+<div class="barra-resultados">
+    <p class="meta">{{ page_obj.paginator.count|intcomma }} restaurante{{ page_obj.paginator.count|pluralize }}</p>
+    <!-- cambiar entre lista y mapa conservando búsqueda y filtros -->
+    <div class="vista-selector" role="group" aria-label="Forma de ver los resultados">
+        <span class="activo" aria-current="true">Lista</span>
+        <a href="{% url 'mapa' %}{% if querystring %}?{{ querystring }}{% endif %}">{% include 'icono.html' with n='mapa' %}Mapa</a>
+    </div>
+</div>
 
 <!-- tarjetas lado a lado (foto + datos), la misma tarjeta que usa el inicio -->
 <div class="rejilla-resto" style="margin-top:12px">

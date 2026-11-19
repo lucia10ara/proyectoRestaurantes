@@ -305,3 +305,72 @@ class FiltrosAvanzadosTests(Base):
 
     def test_sin_sesion_se_ignoran_los_filtros_personales(self):
         self.assertEqual(len(self.nombres('guardados=1')), 3)
+
+
+class MapaTests(Base):
+    """Bloque 2: el mapa solo enseña lo que tiene ubicación y respeta los filtros."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.resto.latitud, cls.resto.longitud = 43.26, -2.93
+        cls.resto.save()
+        cls.sin_sitio = Restaurante.objects.create(ciudad=cls.ciudad, nombre='Sin ubicación', tipo_cocina='Pintxos', direccion='Calle 2')
+        cls.lejos = Restaurante.objects.create(ciudad=cls.ciudad, nombre='En Madrid', tipo_cocina='Italiana', direccion='Calle 3',
+                                               latitud=40.41, longitud=-3.70, terraza=True)
+        Resena.objects.create(restaurante=cls.resto, autor=cls.ana.perfil, puntuacion=4, titulo='Bien', texto='ok')
+        Resena.objects.create(restaurante=cls.resto, autor=cls.bea.perfil, puntuacion=5, titulo='Genial', texto='ok')
+
+    BILBAO = {'sur': 43.0, 'norte': 43.5, 'oeste': -3.2, 'este': -2.7}
+
+    def datos(self, **params):
+        r = self.client.get(reverse('mapa_datos'), params)
+        return r, r.json()
+
+    def test_paginas(self):
+        self.assertEqual(self.client.get(reverse('mapa')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('mapa'), {'foco': self.resto.id, 'terraza': 1}).status_code, 200)
+        self.assertEqual(self.client.get(reverse('mapa'), {'foco': 'x"><script>'}).status_code, 200)
+
+    def test_solo_la_zona_visible_y_con_ubicacion(self):
+        r, d = self.datos(**self.BILBAO)
+        self.assertEqual([x['id'] for x in d['restaurantes']], [self.resto.id])  #ni el de Madrid ni el que no tiene ubicación
+        self.assertEqual(d['total'], 1)
+        self.assertEqual(d['restaurantes'][0]['media'], 4.5)
+        self.assertEqual(d['restaurantes'][0]['resenas'], 2)
+
+    def test_respeta_filtros_y_buscador(self):
+        todo = {'sur': 35, 'norte': 45, 'oeste': -10, 'este': 5}
+        self.assertEqual(self.datos(**todo)[1]['total'], 2)
+        self.assertEqual([x['id'] for x in self.datos(terraza=1, **todo)[1]['restaurantes']], [self.lejos.id])
+        self.assertEqual([x['id'] for x in self.datos(q='pintxo', **todo)[1]['restaurantes']], [self.resto.id])
+        self.assertEqual(self.datos(precio=2, **todo)[1]['total'], 0)  #el precio desconocido no cuenta como confirmado
+
+    def test_limites_invalidos(self):
+        self.assertEqual(self.client.get(reverse('mapa_datos')).status_code, 400)
+        for malo in ['nan', 'inf', 'abc', '999']:
+            r, _ = self.datos(**{**self.BILBAO, 'sur': malo})
+            self.assertEqual(r.status_code, 400, malo)
+
+    def test_encuadre_inicial_y_foco(self):
+        _, d = self.datos(inicial=1, foco=self.resto.id)
+        self.assertEqual(d['total'], 2)
+        self.assertEqual(d['zona'], [[40.41, -3.70], [43.26, -2.93]])
+        self.assertEqual(d['foco']['id'], self.resto.id)
+        _, d = self.datos(inicial=1, foco=self.sin_sitio.id)  #sin coordenadas no se puede enfocar
+        self.assertIsNone(d['foco'])
+        _, d = self.datos(inicial=1, precio=3)
+        self.assertIsNone(d['zona'])
+
+    def test_limite_de_puntos(self):
+        from . import views
+        Restaurante.objects.bulk_create([Restaurante(ciudad=self.ciudad, nombre=f'Bar {i}', tipo_cocina='Bar', direccion=f'Calle {i}',
+                                                     latitud=43.2, longitud=-2.9) for i in range(views.LIMITE_MAPA + 5)])
+        _, d = self.datos(**self.BILBAO)
+        self.assertEqual(len(d['restaurantes']), views.LIMITE_MAPA)
+        self.assertEqual(d['total'], views.LIMITE_MAPA + 6)  #el total real, para avisar de que faltan por enseñar
+
+    def test_enlaces_lista_y_ficha(self):
+        self.assertContains(self.client.get(reverse('lista_restaurantes'), {'terraza': 1}), '/mapa/?terraza=1')
+        self.assertContains(self.client.get(f'/restaurantes/{self.resto.id}/'), f'/mapa/?foco={self.resto.id}')
+        self.assertNotContains(self.client.get(f'/restaurantes/{self.sin_sitio.id}/'), 'Ver en el mapa')

@@ -4,6 +4,8 @@ Los filtros que miran otras tablas (reseñas, guardados, fotos, alérgenos, tipo
 subconsultas "id in (...)": así no se duplican filas ni se deforman las medias de las reseñas.
 Los sí/no solo devuelven lo CONFIRMADO: si de un restaurante no sabemos si tiene terraza, no sale al filtrar por terraza.
 """
+from django.db.models import Q
+
 from .models import Resena, Guardado, Foto, Restaurante, MomentoComida, Alergeno
 
 #(nombre en la URL, campo del modelo, texto del filtro)
@@ -51,6 +53,9 @@ def filtrar(qs, params, yo, prefijo=''):
     p = prefijo
     campo_id = 'restaurante_id' if prefijo else 'pk'
 
+    q = (params.get('q') or '').strip()
+    if q:  #buscador: nombre o tipo de cocina (icontains no distingue mayúsculas)
+        qs = qs.filter(Q(**{p + 'nombre__icontains': q}) | Q(**{p + 'tipo_cocina__icontains': q}))
     if params.get('comunidad'):
         qs = qs.filter(**{p + 'ciudad__comunidad': params['comunidad']})
     if entero(params.get('ciudad'), 1, 10**9):

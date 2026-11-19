@@ -39,7 +39,7 @@
     <label class="chip"><input type="checkbox" name="ninos" value="1" {% if filtros.ninos %}checked{% endif %}> Con niños</label>
     <label class="chip"><input type="checkbox" name="perros" value="1" {% if filtros.perros %}checked{% endif %}> Con perro</label>
 
-    {% if con_buscador %}
+    {% if con_buscador and not sin_orden %}
     <select name="orden" aria-label="Ordenar">
         <option value="">Mejor valorados</option>
         <option value="nombre" {% if filtros.orden == 'nombre' %}selected{% endif %}>Por nombre</option>

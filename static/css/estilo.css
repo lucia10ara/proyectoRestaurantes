@@ -619,6 +619,27 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
     .pestanas > label { padding: 12px 10px; font-size: .875rem; }
 }
 
+/* ---------- Mapa y selector lista / mapa ---------- */
+.barra-resultados { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 4px; flex-wrap: wrap; }
+.barra-resultados .meta { margin: 0; }
+.vista-selector { display: inline-flex; border: 1px solid var(--linea); border-radius: 999px; background: var(--blanco); overflow: hidden; }
+.vista-selector > * { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; font-size: .875rem; font-weight: 600; color: var(--tinta-2); }
+.vista-selector .icono { width: 16px; height: 16px; }
+.vista-selector .activo { background: var(--azulejo); color: var(--texto-claro); }
+.vista-selector a:hover { background: var(--papel); text-decoration: none; }
+.mapa-caja { position: relative; margin-top: 10px; border: 1px solid var(--linea); border-radius: var(--r-tarjeta); overflow: hidden; box-shadow: var(--sombra); }
+#mapa { height: clamp(380px, 68vh, 760px); background: var(--azulejo-suave); }
+.mapa-cerca { position: absolute; z-index: 1000; left: 12px; bottom: 12px; padding: 8px 14px; font-size: .875rem; display: inline-flex; align-items: center; gap: 6px; }
+.mapa-cerca .icono { width: 16px; height: 16px; }
+.mapa-ficha { font-family: var(--letra); line-height: 1.35; }
+.mapa-ficha > * { margin: 2px 0; }
+.mapa-ficha-titulo { font-weight: 700; font-size: 1rem; color: var(--tinta); }
+.mapa-ficha-nota { font-weight: 600; color: var(--tinta-2); }
+.nota-mapa { margin-top: 10px; }
+/* grupos de marcadores en nuestros colores (sustituyen al verde/amarillo de la librería) */
+.mapa-caja .marker-cluster-small, .mapa-caja .marker-cluster-medium, .mapa-caja .marker-cluster-large { background-color: rgba(210, 187, 160, .6); }
+.mapa-caja .marker-cluster-small div, .mapa-caja .marker-cluster-medium div, .mapa-caja .marker-cluster-large div { background-color: var(--azulejo); color: var(--texto-claro); font-family: var(--letra); font-weight: 700; }
+
 /* menos movimiento si el sistema lo pide: el corazón aparece y se va sin saltar */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; }
