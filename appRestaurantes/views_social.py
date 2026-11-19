@@ -9,6 +9,9 @@ from django.views.decorators.http import require_POST
 
 from .forms import ResenaForm, FotoForm, ComentarioForm, RestauranteForm, VisitaForm
 from .models import Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita
+from django.urls import reverse
+
+from .notificaciones import notificar
 from .views import perfil_actual
 
 # ======================================================================
@@ -167,6 +170,9 @@ def comentar(request, tipo, pk):
     form = ComentarioForm(request.POST, instance=Comentario(autor=yo, **{tipo: objetivo}))
     if form.is_valid():
         form.save()
+        cosa = 'tu foto' if tipo == 'foto' else 'tu reseña'
+        notificar(objetivo.autor, yo, 'comentario', f'{yo} ha comentado en {cosa} de {objetivo.restaurante.nombre}.',
+                  reverse(nombre_url, args=[pk]))
     else:
         messages.error(request, 'El comentario no puede estar vacío (máximo 300 caracteres).')
     return redirect(nombre_url, pk=pk)

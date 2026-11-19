@@ -359,3 +359,67 @@ class ElementoColeccion(models.Model):
 
     def __str__(self):
         return f"{self.restaurante} en {self.coleccion}"
+
+
+class Notificacion(models.Model):
+    #aviso para un usuario (invitación a un plan, nuevo seguidor, comentario...). El texto y el enlace se guardan ya escritos
+    #para que sigan valiendo aunque después se borre lo que los originó
+    TIPOS = [('plan', 'Plan'), ('seguidor', 'Nuevo seguidor'), ('comentario', 'Comentario')]
+    destinatario = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='notificaciones')
+    actor = models.ForeignKey(Perfil, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')  #quien lo provoca
+    tipo = models.CharField(max_length=12, choices=TIPOS)
+    texto = models.CharField(max_length=250)
+    url = models.CharField(max_length=200, blank=True)
+    leida = models.BooleanField(default=False)
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Notificación"
+        verbose_name_plural = "Notificaciones"
+        ordering = ['-creada', '-id']
+        indexes = [models.Index(fields=['destinatario', 'leida'], name='notif_destinatario_leida')]
+
+    def __str__(self):
+        return f"Para {self.destinatario}: {self.texto[:40]}"
+
+
+class Plan(models.Model):
+    #quedada con amigos en un restaurante. Solo la ven quien lo crea y quienes están invitados
+    creador = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='planes_creados')
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='planes')
+    cuando = models.DateTimeField('Día y hora')
+    mensaje = models.CharField(max_length=200, blank=True)
+    cancelado = models.BooleanField(default=False)
+    creado = models.DateTimeField(auto_now_add=True)
+    invitados = models.ManyToManyField(Perfil, through='Invitacion', related_name='planes_invitado')
+
+    class Meta:
+        verbose_name = "Plan"
+        verbose_name_plural = "Planes"
+        ordering = ['cuando']
+        indexes = [models.Index(fields=['cuando'], name='plan_cuando')]
+
+    def __str__(self):
+        return f"{self.creador} en {self.restaurante} ({self.cuando:%d/%m/%Y})"
+
+    def lo_ve(self, yo, usuario=None):
+        #solo el creador, los invitados y la administradora
+        if usuario is not None and usuario.is_staff:
+            return True
+        return yo is not None and (yo.id == self.creador_id or self.invitaciones.filter(perfil=yo).exists())
+
+
+class Invitacion(models.Model):
+    ESTADOS = [('pendiente', 'Sin responder'), ('si', 'Va'), ('no', 'No va')]
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name='invitaciones')
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='invitaciones')
+    estado = models.CharField(max_length=10, choices=ESTADOS, default='pendiente')
+    respondida = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Invitación"
+        verbose_name_plural = "Invitaciones"
+        constraints = [models.UniqueConstraint(fields=['plan', 'perfil'], name='invitacion_unica')]
+
+    def __str__(self):
+        return f"{self.perfil} · {self.plan} · {self.estado}"

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views, views_social, views_colecciones
+from . import views, views_social, views_colecciones, views_avisos
 
 #index y listas de listas y detalles de cada modelo 
 
@@ -51,6 +51,10 @@ urlpatterns = [
     path('colecciones/<int:pk>/nota/<int:restaurante_pk>/', views_colecciones.nota_en_coleccion, name='nota_en_coleccion'),
     path('restaurantes/<int:pk>/coleccion/', views_colecciones.anadir_a_coleccion, name='anadir_a_coleccion'),
     path('perfiles/<int:pk>/colecciones/', views_colecciones.colecciones_de_perfil, name='colecciones_de_perfil'),
+
+    #avisos (notificaciones) del usuario
+    path('avisos/', views_avisos.avisos, name='avisos'),
+    path('avisos/borrar-leidos/', views_avisos.avisos_borrar_leidos, name='avisos_borrar_leidos'),
 
     #solo administradora
     path('panel/', views_social.panel, name='panel'),

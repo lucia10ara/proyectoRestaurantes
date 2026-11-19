@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Avisos{% endblock %}
+
+{% block contenido %}
+
+<h1>Avisos</h1>
+<p class="subtitulo">Invitaciones a planes, nuevos seguidores y comentarios.</p>
+
+{% if lista.paginator.count %}
+<form method="post" action="{% url 'avisos_borrar_leidos' %}" class="acciones">
+    {% csrf_token %}<button class="boton boton-secundario boton-peque" type="submit">Borrar los ya leídos</button>
+</form>
+{% endif %}
+
+<ul class="lista-avisos">
+    {% for n in lista %}
+    <li class="aviso-fila {% if n.id in nuevos %}nuevo{% endif %}">
+        {% if n.actor and n.actor.imagen_src %}<img class="avatar pequeno" src="{{ n.actor.imagen_src }}" alt="">
+        {% else %}<div class="avatar pequeno">{% if n.actor %}{{ n.actor.usuario.username|first|upper }}{% else %}·{% endif %}</div>{% endif %}
+        <div>
+            {% if n.url %}<a href="{{ n.url }}">{{ n.texto }}</a>{% else %}{{ n.texto }}{% endif %}
+            <div class="meta">{{ n.creada|timesince }} · {{ n.get_tipo_display }}{% if n.id in nuevos %} · <strong>nuevo</strong>{% endif %}</div>
+        </div>
+    </li>
+    {% empty %}
+    <li class="meta">No tienes avisos todavía.</li>
+    {% endfor %}
+</ul>
+
+{% if lista.paginator.num_pages > 1 %}
+<nav class="paginacion">
+    {% if lista.has_previous %}<a class="boton boton-secundario" href="?page={{ lista.previous_page_number }}">← Más nuevos</a>{% endif %}
+    <span class="meta">Página {{ lista.number }} de {{ lista.paginator.num_pages }}</span>
+    {% if lista.has_next %}<a class="boton boton-secundario" href="?page={{ lista.next_page_number }}">Más antiguos →</a>{% endif %}
+</nav>
+{% endif %}
+
+{% endblock %}

@@ -12,7 +12,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from .filtros import filtrar, contexto_filtros
 from .forms import RegistroForm, VisitaForm
-from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado
+from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion
+from .notificaciones import notificar
 
 # Create your views here.
 
@@ -80,6 +81,9 @@ def seguir(request, pk):
             yo.siguiendo.remove(otro)
         else:
             yo.siguiendo.add(otro)
+            hay_aviso = Notificacion.objects.filter(destinatario=otro, actor=yo, tipo='seguidor', leida=False).exists()
+            if not hay_aviso:  #seguir y dejar de seguir muchas veces no llena de avisos
+                notificar(otro, yo, 'seguidor', f'{yo} ha empezado a seguirte.', reverse('detalle_perfil', args=[yo.pk]))
     return redirect('detalle_perfil', pk=pk)
 
 

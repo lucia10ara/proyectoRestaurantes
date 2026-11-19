@@ -29,6 +29,7 @@
                 <a class="enlace {% if pagina == 'mapa' %}activo{% endif %}" href="{% url 'mapa' %}">{% include 'icono.html' with n='mapa' %}Mapa</a>
                 <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}">{% include 'icono.html' with n='gente' %}Gente</a>
                 {% if user.is_authenticated and user.perfil %}
+                <a class="enlace {% if pagina == 'avisos' %}activo{% endif %}" href="{% url 'avisos' %}">{% include 'icono.html' with n='campana' %}Avisos{% if avisos_sin_leer %}<span class="insignia" aria-label="{{ avisos_sin_leer }} sin leer">{{ avisos_sin_leer }}</span>{% endif %}</a>
                 <a class="enlace {% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}" href="{% url 'detalle_perfil' user.perfil.id %}">{% include 'icono.html' with n='perfil' %}Mi perfil</a>
                 {% endif %}
                 {% if user.is_staff %}
@@ -74,6 +75,9 @@
                 </form>
                 {% if not user.is_authenticated %}
                 <a class="boton boton-peque solo-movil" href="{% url 'login' %}">Entrar</a>
+                {% else %}
+                <!-- en móvil no hay menú lateral: la campana de avisos va arriba -->
+                <a class="campana-movil solo-movil" href="{% url 'avisos' %}" aria-label="Avisos{% if avisos_sin_leer %} ({{ avisos_sin_leer }} sin leer){% endif %}">{% include 'icono.html' with n='campana' %}{% if avisos_sin_leer %}<span class="insignia">{{ avisos_sin_leer }}</span>{% endif %}</a>
                 {% endif %}
             </header>
 

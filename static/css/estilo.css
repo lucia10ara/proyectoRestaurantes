@@ -653,6 +653,14 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .form-nota input { flex: 1 1 140px; font: inherit; font-size: .875rem; background: var(--blanco); border: 1px solid var(--linea); border-radius: 999px; padding: 7px 14px; min-width: 0; }
 .nota-personal { font-style: italic; margin: 0; }
 
+/* ---------- Avisos y planes ---------- */
+.insignia { margin-left: auto; min-width: 22px; text-align: center; background: var(--tomate); color: #fff; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+.campana-movil { position: relative; display: inline-flex; color: var(--tinta); margin-left: auto; padding: 6px; }
+.campana-movil .insignia { position: absolute; top: -2px; right: -4px; margin: 0; padding: 0 5px; font-size: .6875rem; }
+.lista-avisos { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.aviso-fila { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-tarjeta); }
+.aviso-fila.nuevo { border-color: var(--azulejo); background: var(--azulejo-suave); }
+
 /* menos movimiento si el sistema lo pide: el corazón aparece y se va sin saltar */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; }

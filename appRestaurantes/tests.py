@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion
+from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion
 
 
 class Base(TestCase):
@@ -469,3 +469,38 @@ class ColeccionesTests(Base):
         self.assertEqual(ElementoColeccion.objects.count(), 0)
         self.ana.delete()
         self.assertEqual(Coleccion.objects.count(), 0)
+
+
+class AvisosTests(Base):
+    """Bloque 4 (parte 1): notificaciones."""
+
+    def test_seguir_avisa_una_vez(self):
+        self.entrar(self.bea)
+        url = reverse('seguir', args=[self.ana.perfil.pk])
+        self.client.post(url); self.client.post(url); self.client.post(url)  #seguir, dejar, seguir otra vez
+        self.assertEqual(Notificacion.objects.filter(destinatario=self.ana.perfil, tipo='seguidor').count(), 1)
+
+    def test_comentar_avisa_al_autor_pero_no_a_uno_mismo(self):
+        resena = Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, puntuacion=4, titulo='t', texto='x')
+        self.entrar(self.ana)
+        self.client.post(reverse('comentar', args=['resena', resena.pk]), {'texto': 'yo mismo'})
+        self.assertEqual(Notificacion.objects.count(), 0)
+        self.entrar(self.bea)
+        self.client.post(reverse('comentar', args=['resena', resena.pk]), {'texto': 'qué bien'})
+        aviso = Notificacion.objects.get()
+        self.assertEqual(aviso.destinatario, self.ana.perfil)
+        self.assertEqual(aviso.url, reverse('detalle_resena', args=[resena.pk]))
+
+    def test_pagina_de_avisos_y_contador(self):
+        Notificacion.objects.create(destinatario=self.ana.perfil, actor=self.bea.perfil, tipo='seguidor', texto='bea te sigue')
+        Notificacion.objects.create(destinatario=self.bea.perfil, tipo='seguidor', texto='aviso de bea')
+        self.assertEqual(self.client.get('/avisos/').status_code, 302)  #sin sesión
+        self.entrar(self.ana)
+        self.assertContains(self.client.get('/'), 'insignia')  #contador en el menú
+        r = self.client.get('/avisos/')
+        self.assertContains(r, 'bea te sigue')
+        self.assertNotContains(r, 'aviso de bea')  #los de otro usuario no se ven
+        self.assertNotContains(self.client.get('/'), 'insignia')  #ya leído
+        self.client.post('/avisos/borrar-leidos/')
+        self.assertEqual(Notificacion.objects.filter(destinatario=self.ana.perfil).count(), 0)
+        self.assertEqual(Notificacion.objects.filter(destinatario=self.bea.perfil).count(), 1)
