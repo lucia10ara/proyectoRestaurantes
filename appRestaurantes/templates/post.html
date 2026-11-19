@@ -1,58 +1,63 @@
+{% load humanize %}
 {# una publicación del feed: puede ser una foto o una reseña (p.tipo_post). Necesita 'p' y la variable 'next' para volver al feed al dar me gusta #}
 <article class="post">
 
-    <!-- cabecera: quién lo publica y dónde -->
-    <div class="post-cab">
-        <a href="{% url 'detalle_perfil' p.autor.id %}">
+    <!-- cabecera: quién lo publica y cuándo -->
+    <header class="post-cab">
+        <a href="{% url 'detalle_perfil' p.autor.id %}" tabindex="-1">
             {% if p.autor.imagen_src %}<img class="avatar" src="{{ p.autor.imagen_src }}" alt="">
             {% else %}<div class="avatar">{{ p.autor.usuario.username|first|upper }}</div>{% endif %}
         </a>
         <div class="quien">
-            <a href="{% url 'detalle_perfil' p.autor.id %}"><strong>{{ p.autor }}</strong></a>
-            {% if p.es_amigo %}<b class="amigo">amigo</b>{% endif %}
-            <div class="meta">
-                en <a href="{% url 'detalle_restaurante' p.restaurante.id %}">{{ p.restaurante.nombre }}</a>
-                · {{ p.restaurante.ciudad.nombre }} · {{ p.fecha|date:"j M" }}
-            </div>
+            <a class="nombre" href="{% url 'detalle_perfil' p.autor.id %}">{{ p.autor }}</a>
+            {% if p.es_amigo %}<span class="amigo">amigo</span>{% endif %}
+            <div class="meta">{% if p.tipo_post == 'foto' %}subió una foto{% else %}escribió una reseña{% endif %}, {{ p.fecha|naturalday:"j \d\e F" }}</div>
         </div>
-    </div>
+    </header>
 
     {% if p.tipo_post == 'foto' %}
-    <!-- publicación de foto -->
     <!-- doble clic sobre la foto = me gusta (static/js/megusta.js). La foto no es un enlace para que el primer clic no cambie de página -->
     <div class="post-media" data-like-id="{{ p.id }}" data-like-url="{% url 'like_foto' p.id %}"
          data-login-url="{% url 'login' %}?next={{ next|urlencode }}" {% if user.is_authenticated %}data-auth="1"{% endif %}
          title="Doble clic para dar me gusta">
         <img class="post-img" src="{{ p.imagen_src }}" alt="{{ p.pie|default:'Foto' }}" loading="lazy">
-        <span class="corazon" aria-hidden="true">♥</span>
+        <!-- etiqueta del sitio pegada sobre la foto -->
+        <a class="sticker" href="{% url 'detalle_restaurante' p.restaurante.id %}">
+            {% include 'icono.html' with n='lugar' %}<span>{{ p.restaurante.nombre }}<small>{{ p.restaurante.ciudad.nombre }}</small></span>
+        </a>
+        <span class="corazon" aria-hidden="true">{% include 'icono.html' with n='corazon' relleno=True %}</span>
     </div>
-    {% if p.pie %}<p class="post-texto">{{ p.pie }}</p>{% endif %}
+    {% if p.pie %}<p class="post-texto"><a class="nombre" href="{% url 'detalle_perfil' p.autor.id %}">{{ p.autor }}</a> {{ p.pie }}</p>{% endif %}
 
-    <div class="post-acciones">
+    <footer class="post-acciones">
         {% if user.is_authenticated %}
         <form method="post" action="{% url 'like_foto' p.id %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
-            <button class="accion {% if p.me_gusta %}activo{% endif %}" type="submit" data-like-boton="{{ p.id }}">{% if p.me_gusta %}♥{% else %}♡{% endif %} {{ p.num_likes }}</button>
+            <button class="accion like {% if p.me_gusta %}activo{% endif %}" type="submit" data-like-boton="{{ p.id }}" aria-label="Me gusta">
+                {% include 'icono.html' with n='corazon' %}<span data-like-total>{{ p.num_likes }}</span>
+            </button>
         </form>
         {% else %}
-        <a class="accion" href="{% url 'login' %}?next={{ next }}">♡ {{ p.num_likes }}</a>
+        <a class="accion like" href="{% url 'login' %}?next={{ next|urlencode }}" aria-label="Me gusta">{% include 'icono.html' with n='corazon' %}<span>{{ p.num_likes }}</span></a>
         {% endif %}
-        <a class="accion" href="{% url 'detalle_foto' p.id %}">💬 {{ p.num_comentarios }}</a>
-        <span class="etiqueta">{{ p.get_tipo_display }}</span>
-    </div>
+        <a class="accion" href="{% url 'detalle_foto' p.id %}" aria-label="Comentarios">{% include 'icono.html' with n='comentario' %}<span>{{ p.num_comentarios }}</span></a>
+        <span class="tipo-foto">{{ p.get_tipo_display }}</span>
+    </footer>
 
     {% else %}
     <!-- publicación de reseña -->
     <div class="post-resena">
+        <a class="sticker sticker-suelto" href="{% url 'detalle_restaurante' p.restaurante.id %}">
+            {% include 'icono.html' with n='lugar' %}<span>{{ p.restaurante.nombre }}<small>{{ p.restaurante.ciudad.nombre }}</small></span>
+        </a>
         {% include 'estrellas.html' with n=p.puntuacion %}
         <h3><a href="{% url 'detalle_resena' p.id %}">{{ p.titulo }}</a></h3>
         <p>{{ p.texto|truncatewords:45 }}</p>
     </div>
-    <div class="post-acciones">
-        <a class="accion" href="{% url 'detalle_resena' p.id %}">💬 {{ p.num_comentarios }}</a>
-        <span class="etiqueta">Reseña</span>
-    </div>
+    <footer class="post-acciones">
+        <a class="accion" href="{% url 'detalle_resena' p.id %}" aria-label="Comentarios">{% include 'icono.html' with n='comentario' %}<span>{{ p.num_comentarios }}</span></a>
+    </footer>
     {% endif %}
 
 </article>

@@ -31,19 +31,23 @@
         {% else %}
         <!-- bienvenida para quien no ha entrado -->
         <section class="bienvenida">
-            <h1>Descubre dónde comer, <br>con la gente que sabe.</h1>
-            <p>Comparte tus fotos, puntúa de 1 a 5 estrellas y mira qué recomiendan tus amigos entre {{ total_restaurantes|intcomma }} restaurantes de toda España.</p>
-            <p>
-                <a class="boton" href="{% url 'registro' %}">Crear cuenta</a>
-                <a class="boton boton-secundario" href="{% url 'login' %}">Iniciar sesión</a>
-            </p>
-            <div class="cifras">
-                <div><strong>{{ total_restaurantes|intcomma }}</strong><span>restaurantes</span></div>
-                <div><strong>{{ total_resenas }}</strong><span>reseñas</span></div>
-                <div><strong>{{ total_fotos }}</strong><span>fotos</span></div>
+            <div class="bienvenida-texto">
+                <h1>Dónde comer, según tu gente.</h1>
+                <p>Sigue a tus amigos, mira sus fotos y reseñas y apunta el próximo sitio. Hay {{ total_restaurantes|intcomma }} restaurantes de toda España esperando opinión.</p>
+                <div class="acciones">
+                    <a class="boton" href="{% url 'registro' %}">Crear una cuenta</a>
+                    <a class="boton boton-secundario" href="{% url 'login' %}">Ya tengo cuenta</a>
+                </div>
             </div>
+            <!-- mosaico con las últimas fotos de verdad de los usuarios -->
+            {% if fotos_portada %}
+            <div class="mosaico" aria-hidden="true">
+                {% for f in fotos_portada %}<img src="{{ f.imagen_src }}" alt="">{% endfor %}
+                <span class="sticker">{% include 'icono.html' with n='lugar' %}<span>{{ fotos_portada.0.restaurante.nombre }}<small>{{ fotos_portada.0.restaurante.ciudad.nombre }}</small></span></span>
+            </div>
+            {% endif %}
         </section>
-        <h2 class="titulo-feed">Lo último</h2>
+        <h2 class="titulo-feed">Lo último de la comunidad</h2>
         {% endif %}
 
         {% for p in publicaciones %}
@@ -81,7 +85,7 @@
             {% empty %}
             <p class="suave">Ya sigues a todo el mundo 🎉</p>
             {% endfor %}
-            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_perfiles' %}">Ver toda la gente →</a></p>
+            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_perfiles' %}">Ver a toda la gente</a></p>
         </div>
 
         <div class="tarjeta">
@@ -92,14 +96,14 @@
                      onerror="this.onerror=null;this.src='{{ r.imagen_generica }}'">
                 <div class="quien">
                     <strong>{{ r.nombre }}</strong>
-                    <div class="meta">{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</div>
-                    <div class="meta"><span class="estrellas">★</span> {{ r.media|floatformat:1 }} ({{ r.num_resenas }})</div>
+                    <div class="meta">{{ r.tipo_cocina }}, {{ r.ciudad.nombre }}</div>
+                    <div class="nota"><span class="estrellas"><span class="on">★</span></span> <strong>{{ r.media|floatformat:1 }}</strong> <span class="meta">{{ r.num_resenas }} reseña{{ r.num_resenas|pluralize }}</span></div>
                 </div>
             </a>
             {% empty %}
             <p class="suave">Todavía no hay reseñas.</p>
             {% endfor %}
-            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_restaurantes' %}">Ver todos los restaurantes →</a></p>
+            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_restaurantes' %}">Ver todos los restaurantes</a></p>
         </div>
 
     </aside>

@@ -7,6 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}Restaurantes de España{% endblock %}</title>
 
+    <!-- tipografía: Schibsted Grotesk (Google Fonts); si no carga, se usa la del sistema -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- hoja de estilos común a toda la web (está en la carpeta static/css) -->
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 </head>
@@ -20,22 +25,22 @@
 
         <!-- MENÚ LATERAL (ordenador): como en una red social, siempre visible a la izquierda -->
         <aside class="lateral">
-            <a class="logo" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
+            <a class="logo" href="{% url 'index' %}"><span class="logo-marca" aria-hidden="true"></span>Restaurantes de España</a>
 
-            <nav class="menu">
-                <a class="enlace {% if pagina == 'index' %}activo{% endif %}" href="{% url 'index' %}"><span class="ico">⌂</span>Inicio</a>
-                <a class="enlace {% if pagina == 'explorar' %}activo{% endif %}" href="{% url 'explorar' %}"><span class="ico">⌕</span>Explorar</a>
-                <a class="enlace {% if 'restaurante' in pagina or 'ciudad' in pagina %}activo{% endif %}" href="{% url 'lista_restaurantes' %}"><span class="ico">🍽</span>Restaurantes</a>
-                <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}"><span class="ico">☺</span>Gente</a>
+            <nav class="menu" aria-label="Secciones">
+                <a class="enlace {% if pagina == 'index' %}activo{% endif %}" href="{% url 'index' %}">{% include 'icono.html' with n='inicio' %}Inicio</a>
+                <a class="enlace {% if pagina == 'explorar' %}activo{% endif %}" href="{% url 'explorar' %}">{% include 'icono.html' with n='explorar' %}Explorar</a>
+                <a class="enlace {% if 'restaurante' in pagina or 'ciudad' in pagina %}activo{% endif %}" href="{% url 'lista_restaurantes' %}">{% include 'icono.html' with n='restaurantes' %}Restaurantes</a>
+                <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}">{% include 'icono.html' with n='gente' %}Gente</a>
                 {% if user.is_authenticated and user.perfil %}
-                <a class="enlace {% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}" href="{% url 'detalle_perfil' user.perfil.id %}"><span class="ico">👤</span>Mi perfil</a>
+                <a class="enlace {% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}" href="{% url 'detalle_perfil' user.perfil.id %}">{% include 'icono.html' with n='perfil' %}Mi perfil</a>
                 {% endif %}
                 {% if user.is_staff %}
-                <a class="enlace {% if pagina == 'panel' %}activo{% endif %}" href="{% url 'panel' %}"><span class="ico">⚙</span>Panel</a>
+                <a class="enlace {% if pagina == 'panel' %}activo{% endif %}" href="{% url 'panel' %}">{% include 'icono.html' with n='panel' %}Panel</a>
                 {% endif %}
             </nav>
 
-            <a class="boton boton-grande" href="{% url 'publicar' %}">＋ Publicar</a>
+            <a class="boton boton-grande" href="{% url 'publicar' %}">{% include 'icono.html' with n='mas' %}Publicar</a>
 
             <!-- zona de usuario, abajo del todo -->
             <div class="usuario-lateral">
@@ -47,18 +52,16 @@
                             <strong>{{ user.username }}</strong>
                             <div class="meta">{% if user.is_staff %}Administradora{% else %}Usuario{% endif %}</div>
                         </div>
-                    </div>
-                    <div class="fila" style="margin-top:10px">
-                        {% if user.is_staff %}<a class="enlace-suave" href="/admin/">Django admin</a>{% endif %}
                         <!-- Django solo deja cerrar sesión con POST -->
-                        <form method="post" action="{% url 'logout' %}" style="margin-left:auto">
+                        <form method="post" action="{% url 'logout' %}" class="salir">
                             {% csrf_token %}
-                            <button class="boton-texto" type="submit">Salir</button>
+                            <button class="boton-icono" type="submit" title="Cerrar sesión" aria-label="Cerrar sesión">{% include 'icono.html' with n='salir' %}</button>
                         </form>
                     </div>
+                    {% if user.is_staff %}<a class="enlace-suave" href="/admin/">Administración de Django</a>{% endif %}
                 {% else %}
                     <a class="boton boton-secundario" href="{% url 'login' %}">Iniciar sesión</a>
-                    <a class="enlace-suave" href="{% url 'registro' %}">Crear cuenta</a>
+                    <a class="enlace-suave" href="{% url 'registro' %}">Crear una cuenta</a>
                 {% endif %}
             </div>
         </aside>
@@ -68,9 +71,10 @@
 
             <!-- barra superior pegada arriba: buscador siempre a mano (en móvil lleva también el logo) -->
             <header class="barra-superior">
-                <a class="logo logo-movil" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
-                <form class="buscador-barra" method="get" action="{% url 'lista_restaurantes' %}">
-                    <input type="search" name="q" placeholder="🔍 Buscar restaurantes o tipo de cocina…" aria-label="Buscar restaurantes">
+                <a class="logo logo-movil" href="{% url 'index' %}"><span class="logo-marca" aria-hidden="true"></span>Restaurantes</a>
+                <form class="buscador-barra" method="get" action="{% url 'lista_restaurantes' %}" role="search">
+                    {% include 'icono.html' with n='buscar' %}
+                    <input type="search" name="q" placeholder="Busca un restaurante o un tipo de cocina" aria-label="Buscar restaurantes">
                 </form>
                 {% if not user.is_authenticated %}
                 <a class="boton boton-peque solo-movil" href="{% url 'login' %}">Entrar</a>
@@ -81,26 +85,26 @@
             <main class="contenido">
                 <!-- avisos ("Reseña publicada", errores...) -->
                 {% for mensaje in messages %}
-                <div class="aviso {{ mensaje.tags }}">{{ mensaje }}</div>
+                <div class="aviso {{ mensaje.tags }}" role="status">{{ mensaje }}</div>
                 {% endfor %}
 
                 {% block contenido %}{% endblock %}
             </main>
 
-            <footer class="pie">Restaurantes de España · Proyecto de Ingeniería Web</footer>
+            <footer class="pie">Restaurantes de España, proyecto de Ingeniería Web</footer>
         </div>
     </div>
 
     <!-- barra inferior solo para móvil (como la de instagram), en ordenador está oculta con CSS -->
-    <nav class="barra-movil">
-        <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}"><span>⌂</span>Inicio</a>
-        <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}"><span>⌕</span>Explorar</a>
-        <a href="{% url 'publicar' %}" class="publicar-movil"><span>＋</span></a>
-        <a href="{% url 'lista_perfiles' %}" class="{% if pagina == 'lista_perfiles' %}activo{% endif %}"><span>☺</span>Gente</a>
+    <nav class="barra-movil" aria-label="Secciones">
+        <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}">{% include 'icono.html' with n='inicio' %}Inicio</a>
+        <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}">{% include 'icono.html' with n='explorar' %}Explorar</a>
+        <a href="{% url 'publicar' %}" class="publicar-movil" aria-label="Publicar">{% include 'icono.html' with n='mas' %}</a>
+        <a href="{% url 'lista_perfiles' %}" class="{% if pagina == 'lista_perfiles' %}activo{% endif %}">{% include 'icono.html' with n='gente' %}Gente</a>
         {% if user.is_authenticated and user.perfil %}
-        <a href="{% url 'detalle_perfil' user.perfil.id %}"><span>👤</span>Yo</a>
+        <a href="{% url 'detalle_perfil' user.perfil.id %}" class="{% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}">{% include 'icono.html' with n='perfil' %}Yo</a>
         {% else %}
-        <a href="{% url 'login' %}"><span>👤</span>Entrar</a>
+        <a href="{% url 'login' %}">{% include 'icono.html' with n='perfil' %}Entrar</a>
         {% endif %}
     </nav>
 

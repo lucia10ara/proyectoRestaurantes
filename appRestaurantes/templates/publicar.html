@@ -10,7 +10,7 @@
     <p class="subtitulo">Busca el restaurante del que quieres hablar.</p>
 
     <form class="filtros" method="get" action="{% url 'publicar' %}">
-        <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="🔍 Nombre del restaurante…" autofocus>
+        <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="Nombre del restaurante" autofocus>
         <button class="boton" type="submit">Buscar</button>
     </form>
 
@@ -24,8 +24,8 @@
             <div class="meta">{{ r.tipo_cocina }} · {% if r.direccion_visible %}{{ r.direccion_visible }}, {% endif %}{{ r.ciudad.nombre }}</div>
         </div>
         <div class="fila botones-publicar">
-            <a class="boton boton-peque" href="{% url 'crear_resena' r.id %}">✍ Reseña</a>
-            <a class="boton boton-peque boton-secundario" href="{% url 'subir_foto' r.id %}">📷 Foto</a>
+            <a class="boton boton-peque" href="{% url 'crear_resena' r.id %}">{% include 'icono.html' with n='resena' %}Reseña</a>
+            <a class="boton boton-peque boton-secundario" href="{% url 'subir_foto' r.id %}">{% include 'icono.html' with n='camara' %}Foto</a>
         </div>
     </div>
     {% empty %}

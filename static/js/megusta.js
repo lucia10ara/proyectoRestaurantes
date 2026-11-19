@@ -38,7 +38,8 @@ document.addEventListener('dblclick', function (evento) {
         .then(function (respuesta) {
             // se actualiza el botón del corazón de esa publicación sin recargar la página
             document.querySelectorAll('[data-like-boton="' + foto.dataset.likeId + '"]').forEach(function (boton) {
-                boton.textContent = '♥ ' + respuesta.total;
+                var total = boton.querySelector('[data-like-total]');
+                if (total) total.textContent = respuesta.total;
                 boton.classList.add('activo');
             });
         })

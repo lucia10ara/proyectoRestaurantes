@@ -43,9 +43,9 @@
         <p>{{ perfil.biografia }}</p>
         {% endif %}
 
-        <p class="meta">
-            {% if perfil.ciudad %}📍 <a href="{% url 'detalle_ciudad' perfil.ciudad.id %}">{{ perfil.ciudad }}</a> · {% endif %}
-            Miembro desde {{ perfil.fecha_alta }}
+        <p class="meta fila" style="gap:6px">
+            {% if perfil.ciudad %}{% include 'icono.html' with n='lugar' %}<a href="{% url 'detalle_ciudad' perfil.ciudad.id %}">{{ perfil.ciudad }}</a>,{% endif %}
+            en la comunidad desde {{ perfil.fecha_alta|date:"F \d\e Y" }}
         </p>
 
         <!-- amigos = seguimiento mutuo (se calcula en el modelo), siguiendo y seguidores no son simétricos -->
@@ -63,13 +63,13 @@
 <!-- pestañas hechas solo con CSS: cada radio enseña su panel cuando está marcado -->
 <div class="pestanas">
     <input type="radio" name="pestana" id="tab-fotos" checked>
-    <label for="tab-fotos">▦ Fotos</label>
+    <label for="tab-fotos">Fotos</label>
     <input type="radio" name="pestana" id="tab-resenas">
-    <label for="tab-resenas">★ Reseñas</label>
+    <label for="tab-resenas">Reseñas</label>
     <input type="radio" name="pestana" id="tab-likes">
-    <label for="tab-likes">♡ Me gusta</label>
+    <label for="tab-likes">Me gusta</label>
     <input type="radio" name="pestana" id="tab-red">
-    <label for="tab-red">👥 Seguidores</label>
+    <label for="tab-red">Seguidores</label>
 
     <!-- Mis fotos: rejilla de 3 columnas con fotos cuadradas -->
     <div class="panel" id="panel-fotos">

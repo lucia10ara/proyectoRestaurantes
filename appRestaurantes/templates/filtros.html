@@ -1,7 +1,7 @@
 {# trozo reutilizable: formulario de filtros (ciudad, niños, perros, alérgenos). Se usa en explorar y en la lista de restaurantes #}
 <form class="filtros" method="get">
     {% if con_buscador %}
-    <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="🔍 Buscar por nombre o tipo de cocina…">
+    <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="Nombre o tipo de cocina">
     {% endif %}
 
     <!-- primero la comunidad; al elegirla se rellena el desplegable de ciudades (static/js/ciudades.js) -->
@@ -36,8 +36,8 @@
     {% endif %}
 
     <!-- las casillas se ven como etiquetas que se marcan -->
-    <label class="chip"><input type="checkbox" name="ninos" value="1" {% if filtros.ninos %}checked{% endif %}> 👶 Niños</label>
-    <label class="chip"><input type="checkbox" name="perros" value="1" {% if filtros.perros %}checked{% endif %}> 🐶 Perros</label>
+    <label class="chip"><input type="checkbox" name="ninos" value="1" {% if filtros.ninos %}checked{% endif %}> Con niños</label>
+    <label class="chip"><input type="checkbox" name="perros" value="1" {% if filtros.perros %}checked{% endif %}> Con perro</label>
 
     {% if con_buscador %}
     <select name="orden">

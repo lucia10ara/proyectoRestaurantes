@@ -1,2 +1,2 @@
 {# trozo reutilizable: pinta las estrellas de una puntuación (n) de 1 a 5. Se usa con: include 'estrellas.html' with n=resena.puntuacion #}
-<span class="estrellas{% if grande %} grande{% endif %}" title="{{ n }} de 5">{% for i in "12345" %}{% if forloop.counter <= n %}★{% else %}☆{% endif %}{% endfor %}</span>
+<span class="estrellas{% if grande %} grande{% endif %}" role="img" aria-label="{{ n|default:0 }} de 5 estrellas">{% for i in "12345" %}<span class="{% if forloop.counter <= n %}on{% else %}off{% endif %}">★</span>{% endfor %}</span>

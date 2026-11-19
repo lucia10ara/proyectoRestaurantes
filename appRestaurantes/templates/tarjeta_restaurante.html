@@ -1,29 +1,31 @@
-<!-- tarjeta de restaurante "lado a lado": foto a la izquierda, datos a la derecha. Se usa en el inicio y en la lista de restaurantes.
+<!-- tarjeta de restaurante: foto arriba y datos debajo. Se usa en la lista de restaurantes.
      Necesita que el restaurante venga con media, num_resenas y estrellas (los calcula la vista con Avg y Count) -->
 <article class="resto">
-    <a class="resto-foto" href="{% url 'detalle_restaurante' r.id %}">
+    <a class="resto-foto" href="{% url 'detalle_restaurante' r.id %}" tabindex="-1">
         <!-- foto real si hay (portada o la más votada de los usuarios); si no, ilustración según la cocina.
              Si un enlace externo falla, onerror pone la ilustración (this.onerror=null evita un bucle) -->
-        <img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}" loading="lazy"
+        <img src="{{ r.imagen_src }}" alt="" loading="lazy"
              onerror="this.onerror=null;this.src='{{ r.imagen_generica }}'">
+        <span class="sticker sticker-peque">{{ r.ciudad.nombre }}</span>
     </a>
 
     <div class="resto-info">
-        <p class="meta">{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</p>
         <h3><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a></h3>
+        <p class="meta">{{ r.tipo_cocina }}</p>
 
-        <p>
+        <p class="nota">
+            {% if r.media %}
             {% include 'estrellas.html' with n=r.estrellas %}
-            {% if r.media %}<strong>{{ r.media|floatformat:1 }}</strong>{% endif %}
-            <span class="meta">({{ r.num_resenas }} reseña{{ r.num_resenas|pluralize }})</span>
+            <strong>{{ r.media|floatformat:1 }}</strong>
+            <span class="meta">{{ r.num_resenas }} reseña{{ r.num_resenas|pluralize }}</span>
+            {% else %}
+            <span class="meta">Todavía sin reseñas</span>
+            {% endif %}
         </p>
 
-        <!-- yesno convierte el booleano en sí o no -->
-        <div class="etiquetas">
-            <span class="etiqueta {{ r.admite_ninos|yesno:'si,no' }}">👶 Niños: {{ r.admite_ninos|yesno:"sí,no" }}</span>
-            <span class="etiqueta {{ r.admite_perros|yesno:'si,no' }}">🐶 Perros: {{ r.admite_perros|yesno:"sí,no" }}</span>
-        </div>
-
-        <a class="boton boton-secundario" href="{% url 'detalle_restaurante' r.id %}">Ver restaurante</a>
+        <!-- solo lo que distingue al sitio: casi todos admiten niños (es el valor por defecto), así que solo se marca el perro -->
+        {% if r.admite_perros %}
+        <div class="etiquetas"><span class="etiqueta">Se puede ir con perro</span></div>
+        {% endif %}
     </div>
 </article>

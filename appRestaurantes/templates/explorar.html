@@ -20,7 +20,7 @@
     {% for foto in fotos %}
     <a class="celda" href="{% url 'detalle_foto' foto.id %}">
         <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" loading="lazy">
-        <span class="capa">{{ foto.restaurante.nombre }}<br><small>{{ foto.restaurante.ciudad.nombre }} · ♥ {{ foto.num_likes }}</small></span>
+        <span class="capa"><span class="sticker sticker-peque">{{ foto.restaurante.nombre }}</span><small>{% include 'icono.html' with n='corazon' relleno=True %}{{ foto.num_likes }}</small></span>
     </a>
     {% empty %}
     <p>No hay fotos con esos filtros.</p>

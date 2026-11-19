@@ -123,6 +123,8 @@ def index(request):
         'publicaciones': publicaciones,
         'sugeridos': sugeridos,
         'destacados': destacados,
+        #mosaico de la bienvenida: las 4 últimas fotos de los usuarios
+        'fotos_portada': [] if yo else list(Foto.objects.select_related('restaurante__ciudad')[:4]),
         #cifras (para la bienvenida de quien no ha entrado)
         'total_restaurantes': Restaurante.objects.count(),
         'total_resenas': Resena.objects.count(),
