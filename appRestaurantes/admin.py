@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario, MomentoComida, Guardado, Visita, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion
+from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario, MomentoComida, Guardado, Visita, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion, Historia
 
 #Definimos los modelos en el admin para poder registrar instancias
 admin.site.register(Perfil)
@@ -71,6 +71,12 @@ class NotificacionAdmin(admin.ModelAdmin):
 class InvitacionInline(admin.TabularInline):
     model = Invitacion
     extra = 0
+
+
+@admin.register(Historia)
+class HistoriaAdmin(admin.ModelAdmin):
+    list_display = ('autor', 'restaurante', 'creada', 'caduca')
+    raw_id_fields = ('restaurante',)
 
 
 @admin.register(Plan)

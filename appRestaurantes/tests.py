@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
 
-from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion
+from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion, Historia
 
 
 class Base(TestCase):
@@ -607,3 +607,87 @@ class PlanesTests(Base):
         self.assertEqual(Visita.objects.count(), 0)
         self.client.post(reverse('marcar_visita', args=[self.resto.pk]), {'fecha': (date.today() - timedelta(days=1)).isoformat(), 'next': r.request['PATH_INFO']})
         self.assertEqual(Visita.objects.filter(perfil=self.bea.perfil).count(), 1)
+
+
+class HistoriasTests(Base):
+    """Bloque 5: historias de 24 horas."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.cai = cls.usuario('cai')
+        cls.bea.perfil.siguiendo.add(cls.ana.perfil)  #bea sigue a ana; cai no
+
+    def historia(self, **extra):
+        return Historia.objects.create(autor=self.ana.perfil, restaurante=self.resto, url='https://ejemplo.com/a.jpg', texto='Rico', **extra)
+
+    def test_caduca_a_las_24_horas(self):
+        h = self.historia()
+        self.assertAlmostEqual((h.caduca - h.creada).total_seconds(), 24 * 3600, delta=5)
+        self.assertEqual(Historia.activas().count(), 1)
+        Historia.objects.filter(pk=h.pk).update(caduca=timezone.now() - timedelta(seconds=1))
+        self.assertEqual(Historia.activas().count(), 0)
+
+    def test_quien_puede_verla(self):
+        h = self.historia()
+        url = reverse('ver_historias', args=[self.ana.perfil.pk])
+        self.assertEqual(self.client.get(url).status_code, 302)  #sin sesión: al login
+        self.entrar(self.cai)
+        self.assertEqual(self.client.get(url).status_code, 404)  #no la sigue
+        self.entrar(self.bea)
+        self.assertContains(self.client.get(url), 'Rico')
+        self.assertEqual(list(h.vista_por.all()), [self.bea.perfil])
+        self.entrar(self.ana)
+        r = self.client.get(url)
+        self.assertContains(r, 'Vista por 1 persona')
+        self.entrar(self.admin)
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_caducada_no_se_ve(self):
+        h = self.historia()
+        Historia.objects.filter(pk=h.pk).update(caduca=timezone.now() - timedelta(minutes=1))
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get(reverse('ver_historias', args=[self.ana.perfil.pk])).status_code, 404)
+
+    def test_tira_en_el_inicio(self):
+        self.historia()
+        self.entrar(self.bea)
+        r = self.client.get('/')
+        self.assertContains(r, 'tira-historias')
+        self.assertContains(r, 'sin-ver')
+        self.client.get(reverse('ver_historias', args=[self.ana.perfil.pk]))
+        self.assertNotContains(self.client.get('/'), 'sin-ver')  #ya vista
+        self.entrar(self.cai)
+        self.assertNotContains(self.client.get('/'), 'tira-historias')
+
+    def test_crear_con_enlace_sin_imagen_y_limite(self):
+        self.entrar(self.ana)
+        url = reverse('crear_historia', args=[self.resto.pk])
+        self.client.post(url, {'texto': 'sin imagen'})
+        self.assertEqual(Historia.objects.count(), 0)
+        self.client.post(url, {'url': 'https://ejemplo.com/b.jpg', 'texto': 'ok'})
+        self.assertEqual(Historia.objects.get().autor, self.ana.perfil)
+        from . import views_historias
+        for _ in range(views_historias.MAX_HISTORIAS_ACTIVAS):
+            self.historia()
+        self.client.post(url, {'url': 'https://ejemplo.com/c.jpg'})
+        self.assertEqual(Historia.objects.count(), views_historias.MAX_HISTORIAS_ACTIVAS + 1)
+        self.client.logout()
+        self.assertEqual(self.client.post(url, {'url': 'https://ejemplo.com/d.jpg'}).status_code, 302)
+
+    def test_solo_borra_el_autor_o_la_admin(self):
+        h = self.historia()
+        url = reverse('borrar_historia', args=[h.pk])
+        self.entrar(self.bea)
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.entrar(self.admin)
+        self.client.post(url)
+        self.assertEqual(Historia.objects.count(), 0)
+
+    def test_comando_limpia_solo_caducadas(self):
+        from django.core.management import call_command
+        viva, muerta = self.historia(), self.historia()
+        Historia.objects.filter(pk=muerta.pk).update(caduca=timezone.now() - timedelta(hours=1))
+        call_command('limpiar_historias', stdout=__import__('io').StringIO())
+        self.assertEqual(list(Historia.objects.values_list('pk', flat=True)), [viva.pk])

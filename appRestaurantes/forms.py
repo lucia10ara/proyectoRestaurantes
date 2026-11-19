@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Ciudad, Perfil, Resena, Foto, Comentario, Restaurante, Coleccion
+from .models import Ciudad, Perfil, Resena, Foto, Comentario, Restaurante, Coleccion, Historia
 
 
 #Formulario de registro: el de Django (usuario + contraseña dos veces) más la ciudad y la biografía, que van en el Perfil
@@ -157,6 +157,24 @@ class ColeccionForm(forms.ModelForm):
         if repetidas.exists():
             raise forms.ValidationError('Ya tienes una colección con ese nombre.')
         return nombre
+
+
+#Historia de 24 horas: imagen (archivo o enlace) y un texto corto; el autor y el restaurante los pone la vista
+MAX_MB_HISTORIA = 5
+
+
+class HistoriaForm(forms.ModelForm):
+    class Meta:
+        model = Historia
+        fields = ('imagen', 'url', 'texto')
+        labels = {'imagen': 'Imagen (archivo)', 'texto': 'Texto (opcional)'}
+        widgets = {'texto': forms.TextInput(attrs={'placeholder': 'Lo que quieras contar (máximo 140 letras)'})}
+
+    def clean_imagen(self):
+        imagen = self.cleaned_data.get('imagen')
+        if imagen and imagen.size > MAX_MB_HISTORIA * 1024 * 1024:
+            raise forms.ValidationError(f'La imagen pesa demasiado (máximo {MAX_MB_HISTORIA} MB).')
+        return imagen
 
 
 #Plan: quedada con amigos (seguimiento mutuo). Solo se puede invitar a amigos y la fecha tiene que ser futura

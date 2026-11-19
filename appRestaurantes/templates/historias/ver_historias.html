@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Historia de {{ autor }}{% endblock %}
+
+{% block contenido %}
+
+<div class="visor-historia">
+    <!-- barrita de progreso: una raya por historia -->
+    <div class="progreso-historia" aria-hidden="true">
+        {% for _ in rayas %}<span class="{% if forloop.counter0 <= n %}hecha{% endif %}"></span>{% endfor %}
+    </div>
+
+    <div class="fila cabecera-historia">
+        {% if autor.imagen_src %}<img class="avatar pequeno" src="{{ autor.imagen_src }}" alt="">
+        {% else %}<div class="avatar pequeno">{{ autor.usuario.username|first|upper }}</div>{% endif %}
+        <div>
+            <a href="{% url 'detalle_perfil' autor.id %}"><strong>{{ autor }}</strong></a>
+            <div class="meta">hace {{ historia.creada|timesince }} · caduca en {{ caduca_en|timeuntil }}</div>
+        </div>
+    </div>
+
+    <img class="imagen-historia" src="{{ historia.imagen_src }}" alt="Historia de {{ autor }} en {{ historia.restaurante.nombre }}">
+
+    <p class="lugar-historia">
+        {% include 'icono.html' with n='lugar' %}<a href="{% url 'detalle_restaurante' historia.restaurante.id %}">{{ historia.restaurante.nombre }}</a>
+        <span class="meta">· {{ historia.restaurante.ciudad.nombre }}</span>
+    </p>
+    {% if historia.texto %}<p>{{ historia.texto }}</p>{% endif %}
+
+    <div class="navegar-historia">
+        {% if anterior is not None %}<a class="boton boton-secundario" href="?n={{ anterior }}">← Anterior</a>{% else %}<span></span>{% endif %}
+        {% if siguiente is not None %}<a class="boton" href="?n={{ siguiente }}">Siguiente →</a>
+        {% else %}<a class="boton boton-secundario" href="{% url 'index' %}">Cerrar</a>{% endif %}
+    </div>
+
+    {% if es_mia %}
+    <div class="tarjeta">
+        <strong>Vista por {{ vistas|length }} persona{{ vistas|length|pluralize }}</strong>
+        <p class="meta">{% for p in vistas %}<a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Todavía nadie.{% endfor %}</p>
+    </div>
+    {% endif %}
+    {% if es_mia or user.is_staff %}
+    <form method="post" action="{% url 'borrar_historia' historia.id %}" onsubmit="return confirm('¿Borrar esta historia?')">
+        {% csrf_token %}<button class="boton-peligro" type="submit">Borrar esta historia</button>
+    </form>
+    {% endif %}
+</div>
+
+{% endblock %}

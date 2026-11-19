@@ -661,6 +661,22 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .aviso-fila { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-tarjeta); }
 .aviso-fila.nuevo { border-color: var(--azulejo); background: var(--azulejo-suave); }
 
+/* ---------- Historias de 24 horas ---------- */
+.tira-historias { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 12px; margin-bottom: 8px; }
+.historia-aro { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 0 0 auto; width: 72px; color: var(--tinta-2); font-size: .75rem; text-align: center; }
+.historia-aro:hover { text-decoration: none; color: var(--tinta); }
+.historia-aro .avatar { width: 56px; height: 56px; box-shadow: 0 0 0 2px var(--blanco), 0 0 0 4px var(--linea); }
+.historia-aro.sin-ver .avatar { box-shadow: 0 0 0 2px var(--blanco), 0 0 0 4px var(--azulejo); }
+.historia-aro span { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visor-historia { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.progreso-historia { display: flex; gap: 4px; }
+.progreso-historia span { flex: 1; height: 4px; border-radius: 2px; background: var(--linea); }
+.progreso-historia span.hecha { background: var(--azulejo); }
+.imagen-historia { width: 100%; max-height: 70vh; object-fit: contain; background: var(--azulejo-suave); border-radius: var(--r-tarjeta); }
+.lugar-historia { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; }
+.lugar-historia .icono { width: 18px; height: 18px; }
+.navegar-historia { display: flex; justify-content: space-between; gap: 12px; }
+
 /* menos movimiento si el sistema lo pide: el corazón aparece y se va sin saltar */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; }

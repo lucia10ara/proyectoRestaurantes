@@ -26,6 +26,7 @@
         <div class="fila botones-publicar">
             <a class="boton boton-peque" href="{% url 'crear_resena' r.id %}">{% include 'icono.html' with n='resena' %}Reseña</a>
             <a class="boton boton-peque boton-secundario" href="{% url 'subir_foto' r.id %}">{% include 'icono.html' with n='camara' %}Foto</a>
+            <a class="boton boton-peque boton-secundario" href="{% url 'crear_historia' r.id %}" title="Dura 24 horas">{% include 'icono.html' with n='historia' %}Historia</a>
         </div>
     </div>
     {% empty %}

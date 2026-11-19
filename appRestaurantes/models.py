@@ -1,10 +1,12 @@
 import unicodedata
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.utils import timezone
 
 #!! python manage.py makemigrations y python manage.py migrate
 
@@ -359,6 +361,53 @@ class ElementoColeccion(models.Model):
 
     def __str__(self):
         return f"{self.restaurante} en {self.coleccion}"
+
+
+class Historia(models.Model):
+    #foto de un momento en un restaurante que dura 24 horas. La ven su autor y la gente que lo sigue
+    DURACION = timedelta(hours=24)
+    autor = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='historias')
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='historias')
+    imagen = models.ImageField(upload_to='historias/', blank=True, null=True)  #archivo subido (o enlace, uno de los dos)
+    url = models.URLField('o enlace a la imagen', max_length=300, blank=True, null=True)
+    texto = models.CharField(max_length=140, blank=True)
+    creada = models.DateTimeField(auto_now_add=True)
+    caduca = models.DateTimeField(editable=False)  #creada + 24 h; se pone sola al guardar
+    vista_por = models.ManyToManyField(Perfil, blank=True, related_name='historias_vistas')
+
+    class Meta:
+        verbose_name = "Historia"
+        verbose_name_plural = "Historias"
+        ordering = ['creada']
+        indexes = [models.Index(fields=['caduca'], name='historia_caduca')]
+
+    def __str__(self):
+        return f"Historia de {self.autor} en {self.restaurante}"
+
+    def clean(self):
+        if not self.imagen and not self.url:
+            raise ValidationError("Sube una imagen o pon un enlace a la imagen.")
+
+    def save(self, *args, **kwargs):
+        if not self.caduca:
+            self.caduca = timezone.now() + self.DURACION
+        super().save(*args, **kwargs)
+
+    @property
+    def imagen_src(self):
+        return self.imagen.url if self.imagen else self.url
+
+    @classmethod
+    def activas(cls):
+        return cls.objects.filter(caduca__gt=timezone.now())
+
+    def visible_para(self, yo, usuario=None):
+        #el autor, quien lo sigue y la administradora (y solo mientras no haya caducado)
+        if self.caduca <= timezone.now():
+            return False
+        if usuario is not None and usuario.is_staff:
+            return True
+        return yo is not None and (yo.id == self.autor_id or self.autor.seguidores.filter(pk=yo.pk).exists())
 
 
 class Notificacion(models.Model):

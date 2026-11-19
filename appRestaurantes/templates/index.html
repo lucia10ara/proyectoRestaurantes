@@ -11,6 +11,18 @@
     <section class="feed">
 
         {% if user.is_authenticated %}
+        <!-- historias de 24 horas: la mía y las de a quien sigo (el aro oscuro = hay algo sin ver) -->
+        {% if tira_historias %}
+        <div class="tira-historias" aria-label="Historias">
+            {% for h in tira_historias %}
+            <a class="historia-aro {% if h.sin_ver %}sin-ver{% endif %}" href="{% url 'ver_historias' h.perfil.id %}">
+                {% if h.perfil.imagen_src %}<img class="avatar" src="{{ h.perfil.imagen_src }}" alt="">{% else %}<div class="avatar">{{ h.perfil.usuario.username|first|upper }}</div>{% endif %}
+                <span>{% if h.mia %}Tu historia{% else %}{{ h.perfil.usuario.username }}{% endif %}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- caja para publicar, como "¿qué estás pensando?" -->
         <div class="componer tarjeta">
             {% if mi_perfil.imagen_src %}<img class="avatar" src="{{ mi_perfil.imagen_src }}" alt="">

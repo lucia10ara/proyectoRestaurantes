@@ -12,7 +12,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from .filtros import filtrar, contexto_filtros
 from .forms import RegistroForm, VisitaForm
-from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion
+from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion, Historia
 from .notificaciones import notificar
 
 # Create your views here.
@@ -124,8 +124,19 @@ def index(request):
                   .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
                   .order_by('-media', '-num_resenas')[:4])
 
+    #tira de historias activas: la mía y las de a quien sigo; primero las que aún no he visto
+    tira = []
+    if yo:
+        vistas = set(yo.historias_vistas.values_list('id', flat=True))
+        por_autor = {}
+        for h in Historia.activas().filter(autor_id__in=ids_siguiendo).select_related('autor__usuario'):
+            datos = por_autor.setdefault(h.autor_id, {'perfil': h.autor, 'sin_ver': 0, 'mia': h.autor_id == yo.id})
+            datos['sin_ver'] += 0 if (h.id in vistas or datos['mia']) else 1
+        tira = sorted(por_autor.values(), key=lambda d: (not d['mia'], d['sin_ver'] == 0, d['perfil'].usuario.username))
+
     context = {
         'mi_perfil': yo,
+        'tira_historias': tira,
         'modo': modo,
         'sigo_a_alguien': sigo_a_alguien,
         'publicaciones': publicaciones,
