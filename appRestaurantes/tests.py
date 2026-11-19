@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.utils import timezone
 from django.urls import reverse
 
 from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion, Notificacion, Plan, Invitacion
@@ -504,3 +505,105 @@ class AvisosTests(Base):
         self.client.post('/avisos/borrar-leidos/')
         self.assertEqual(Notificacion.objects.filter(destinatario=self.ana.perfil).count(), 0)
         self.assertEqual(Notificacion.objects.filter(destinatario=self.bea.perfil).count(), 1)
+
+
+class PlanesTests(Base):
+    """Bloque 4 (parte 2): planes entre amigos."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.cai = cls.usuario('cai')  #ana y bea son amigas; cai solo es seguida por ana (no amiga)
+        cls.ana.perfil.siguiendo.add(cls.bea.perfil, cls.cai.perfil)
+        cls.bea.perfil.siguiendo.add(cls.ana.perfil)
+
+    def manana(self, horas=24):
+        return (timezone.localtime() + timedelta(hours=horas)).strftime('%Y-%m-%dT%H:%M')
+
+    def crear(self, **extra):
+        self.entrar(self.ana)
+        datos = {'cuando': self.manana(), 'mensaje': 'Cenamos', 'invitados': [self.bea.perfil.pk], **extra}
+        return self.client.post(reverse('crear_plan', args=[self.resto.pk]), datos)
+
+    def test_crear_avisa_y_solo_invita_a_amigos(self):
+        r = self.crear()
+        plan = Plan.objects.get()
+        self.assertRedirects(r, reverse('detalle_plan', args=[plan.pk]))
+        self.assertEqual(plan.invitaciones.get().perfil, self.bea.perfil)
+        aviso = Notificacion.objects.get(destinatario=self.bea.perfil)
+        self.assertIn('te ha invitado', aviso.texto)
+        self.assertEqual(aviso.url, reverse('detalle_plan', args=[plan.pk]))
+
+    def test_no_se_puede_invitar_a_quien_no_es_amigo(self):
+        self.crear(invitados=[self.cai.perfil.pk])
+        self.assertEqual(Plan.objects.count(), 0)
+        self.crear(invitados=[])  #al menos uno
+        self.assertEqual(Plan.objects.count(), 0)
+
+    def test_fecha_pasada_rechazada(self):
+        self.crear(cuando=self.manana(-5))
+        self.assertEqual(Plan.objects.count(), 0)
+        self.crear(cuando='basura')
+        self.assertEqual(Plan.objects.count(), 0)
+
+    def test_sin_amigos_no_hay_formulario(self):
+        self.entrar(self.cai)
+        r = self.client.get(reverse('crear_plan', args=[self.resto.pk]))
+        self.assertRedirects(r, reverse('detalle_restaurante', args=[self.resto.pk]))
+
+    def test_solo_lo_ve_quien_participa(self):
+        self.crear()
+        url = reverse('detalle_plan', args=[Plan.objects.get().pk])
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.entrar(self.cai)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        for u in (self.ana, self.bea, self.admin):
+            self.entrar(u)
+            self.assertEqual(self.client.get(url).status_code, 200, u)
+
+    def test_responder(self):
+        self.crear()
+        plan = Plan.objects.get()
+        url = reverse('responder_plan', args=[plan.pk])
+        self.entrar(self.cai)
+        self.assertEqual(self.client.post(url, {'respuesta': 'si'}).status_code, 404)  #no invitada
+        self.entrar(self.ana)
+        self.assertEqual(self.client.post(url, {'respuesta': 'si'}).status_code, 404)  #la creadora no tiene invitación
+        self.entrar(self.bea)
+        self.assertEqual(self.client.post(url, {'respuesta': 'quizas'}).status_code, 403)
+        self.client.post(url, {'respuesta': 'si'})
+        self.assertEqual(plan.invitaciones.get().estado, 'si')
+        self.assertTrue(Notificacion.objects.filter(destinatario=self.ana.perfil, texto__contains='irá').exists())
+        self.client.post(url, {'respuesta': 'si'})  #repetir no duplica el aviso
+        self.assertEqual(Notificacion.objects.filter(destinatario=self.ana.perfil, texto__contains='irá').count(), 1)
+
+    def test_cancelar_solo_la_creadora(self):
+        self.crear()
+        plan = Plan.objects.get()
+        url = reverse('cancelar_plan', args=[plan.pk])
+        self.entrar(self.bea)
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.client.post(url)
+        plan.refresh_from_db()
+        self.assertTrue(plan.cancelado)
+        self.assertTrue(Notificacion.objects.filter(destinatario=self.bea.perfil, texto__contains='cancelado').exists())
+        self.entrar(self.bea)  #un plan cancelado ya no admite respuestas
+        self.client.post(reverse('responder_plan', args=[plan.pk]), {'respuesta': 'si'})
+        self.assertEqual(plan.invitaciones.get().estado, 'pendiente')
+
+    def test_listas_y_visita_tras_el_plan(self):
+        self.crear()
+        plan = Plan.objects.get()
+        self.entrar(self.bea)
+        self.assertContains(self.client.get(reverse('mis_planes')), 'Invitaciones sin responder')
+        #el plan pasa: se ofrece apuntar la visita, pero no se crea sola
+        Plan.objects.filter(pk=plan.pk).update(cuando=timezone.now() - timedelta(days=1))
+        Invitacion.objects.filter(plan=plan).update(estado='si')
+        r = self.client.get(reverse('detalle_plan', args=[plan.pk]))
+        self.assertContains(r, 'apuntar la visita')
+        self.assertEqual(Visita.objects.count(), 0)
+        self.client.post(reverse('marcar_visita', args=[self.resto.pk]), {'fecha': (date.today() - timedelta(days=1)).isoformat(), 'next': r.request['PATH_INFO']})
+        self.assertEqual(Visita.objects.filter(perfil=self.bea.perfil).count(), 1)

@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Ciudad, Perfil, Resena, Foto, Comentario, Restaurante, Coleccion
 
@@ -156,6 +157,36 @@ class ColeccionForm(forms.ModelForm):
         if repetidas.exists():
             raise forms.ValidationError('Ya tienes una colección con ese nombre.')
         return nombre
+
+
+#Plan: quedada con amigos (seguimiento mutuo). Solo se puede invitar a amigos y la fecha tiene que ser futura
+MAX_INVITADOS = 20
+
+
+class PlanForm(forms.Form):
+    cuando = forms.DateTimeField(label='Día y hora', input_formats=['%Y-%m-%dT%H:%M'],
+                                 widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'))
+    mensaje = forms.CharField(label='Mensaje (opcional)', max_length=200, required=False,
+                              widget=forms.TextInput(attrs={'placeholder': '¡Vamos a probar el menú del día!'}))
+    invitados = forms.ModelMultipleChoiceField(label='¿A quién invitas?', queryset=Perfil.objects.none(),
+                                               widget=forms.CheckboxSelectMultiple,
+                                               help_text='Solo puedes invitar a tus amigos (gente a la que sigues y que te sigue).')
+
+    def __init__(self, *args, amigos=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['invitados'].queryset = amigos if amigos is not None else Perfil.objects.none()
+
+    def clean_cuando(self):
+        cuando = self.cleaned_data['cuando']
+        if cuando <= timezone.now():
+            raise forms.ValidationError('El plan tiene que ser en el futuro.')
+        return cuando
+
+    def clean_invitados(self):
+        invitados = self.cleaned_data['invitados']
+        if len(invitados) > MAX_INVITADOS:
+            raise forms.ValidationError(f'Máximo {MAX_INVITADOS} invitados.')
+        return invitados
 
 
 #Visita confirmada: el usuario dice qué día estuvo (no puede ser en el futuro)

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views, views_social, views_colecciones, views_avisos
+from . import views, views_social, views_colecciones, views_avisos, views_planes
 
 #index y listas de listas y detalles de cada modelo 
 
@@ -51,6 +51,13 @@ urlpatterns = [
     path('colecciones/<int:pk>/nota/<int:restaurante_pk>/', views_colecciones.nota_en_coleccion, name='nota_en_coleccion'),
     path('restaurantes/<int:pk>/coleccion/', views_colecciones.anadir_a_coleccion, name='anadir_a_coleccion'),
     path('perfiles/<int:pk>/colecciones/', views_colecciones.colecciones_de_perfil, name='colecciones_de_perfil'),
+
+    #planes entre amigos (solo los ven quien los crea y los invitados)
+    path('planes/', views_planes.mis_planes, name='mis_planes'),
+    path('planes/<int:pk>/', views_planes.detalle_plan, name='detalle_plan'),
+    path('planes/<int:pk>/responder/', views_planes.responder_plan, name='responder_plan'),
+    path('planes/<int:pk>/cancelar/', views_planes.cancelar_plan, name='cancelar_plan'),
+    path('restaurantes/<int:pk>/plan/nuevo/', views_planes.crear_plan, name='crear_plan'),
 
     #avisos (notificaciones) del usuario
     path('avisos/', views_avisos.avisos, name='avisos'),

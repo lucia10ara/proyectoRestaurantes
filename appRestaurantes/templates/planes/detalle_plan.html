@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Plan en {{ plan.restaurante.nombre }}{% endblock %}
+
+{% block contenido %}
+
+<h1>Plan en <a href="{% url 'detalle_restaurante' plan.restaurante.id %}">{{ plan.restaurante.nombre }}</a></h1>
+<p class="subtitulo">
+    {{ cuando|capfirst }} · {{ plan.restaurante.ciudad.nombre }}<br>
+    Organiza <a href="{% url 'detalle_perfil' plan.creador.id %}">{{ plan.creador }}</a>
+    {% if plan.cancelado %}· <span class="etiqueta">Cancelado</span>{% elif ya_paso %}· <span class="etiqueta">Ya pasó</span>{% endif %}
+</p>
+{% if plan.mensaje %}<p>«{{ plan.mensaje }}»</p>{% endif %}
+
+{% if puede_responder %}
+<div class="tarjeta mi-relacion">
+    <strong>¿Vas?</strong>
+    <form method="post" action="{% url 'responder_plan' plan.id %}">
+        {% csrf_token %}
+        <button class="boton {% if mi_invitacion.estado != 'si' %}boton-secundario{% endif %}" name="respuesta" value="si" type="submit">{% include 'icono.html' with n='visita' %}Voy</button>
+        <button class="boton {% if mi_invitacion.estado != 'no' %}boton-secundario{% endif %}" name="respuesta" value="no" type="submit">No puedo</button>
+    </form>
+    {% if mi_invitacion.estado == 'pendiente' %}<span class="meta">Todavía no has respondido.</span>{% endif %}
+</div>
+{% endif %}
+
+<h2>Quién viene ({{ van }})</h2>
+<ul class="lista-avisos">
+    <li class="aviso-fila"><div class="avatar pequeno">{{ plan.creador.usuario.username|first|upper }}</div>
+        <div><a href="{% url 'detalle_perfil' plan.creador.id %}">{{ plan.creador }}</a> <span class="meta">· organiza</span></div></li>
+    {% for i in invitaciones %}
+    <li class="aviso-fila"><div class="avatar pequeno">{{ i.perfil.usuario.username|first|upper }}</div>
+        <div><a href="{% url 'detalle_perfil' i.perfil.id %}">{{ i.perfil }}</a>
+            <span class="etiqueta {% if i.estado == 'si' %}si{% endif %}">{{ i.get_estado_display }}</span></div></li>
+    {% endfor %}
+</ul>
+
+<div class="acciones">
+    {% if puede_confirmar_visita %}
+    <!-- guardar una visita es decisión de cada uno: aquí solo se rellena el día del plan -->
+    <form method="post" action="{% url 'marcar_visita' plan.restaurante.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="fecha" value="{{ fecha_plan|date:'Y-m-d' }}">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button class="boton" type="submit">{% include 'icono.html' with n='visita' %}Fui: apuntar la visita en mi diario</button>
+    </form>
+    {% endif %}
+    {% if es_creador and not plan.cancelado and not ya_paso %}
+    <form method="post" action="{% url 'cancelar_plan' plan.id %}" onsubmit="return confirm('¿Cancelar el plan? Se avisará a los invitados.')">
+        {% csrf_token %}<button class="boton-peligro" type="submit">Cancelar plan</button>
+    </form>
+    {% endif %}
+</div>
+
+<p class="volver"><a href="{% url 'mis_planes' %}">← Mis planes</a></p>
+
+{% endblock %}

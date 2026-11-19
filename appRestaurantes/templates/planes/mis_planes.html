@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Mis planes{% endblock %}
+
+{% block contenido %}
+
+<h1>Mis planes</h1>
+<p class="subtitulo">Quedadas con tus amigos. Para crear una, entra en la ficha de un restaurante y pulsa «Quedar con amigos».</p>
+
+{% if pendientes %}
+<h2>Invitaciones sin responder</h2>
+<ul class="lista-avisos">
+    {% for i in pendientes %}
+    <li class="aviso-fila nuevo">
+        <div>
+            <a href="{% url 'detalle_plan' i.plan.id %}">{{ i.plan.restaurante.nombre }}</a> · {{ i.plan.cuando|date:"j M, H:i" }}
+            <div class="meta">Te invita {{ i.plan.creador }}</div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<h2>Próximos</h2>
+<ul class="lista-avisos">
+    {% for p in proximos %}
+    <li class="aviso-fila">
+        <div>
+            <a href="{% url 'detalle_plan' p.id %}">{{ p.restaurante.nombre }}</a> · {{ p.cuando|date:"j M, H:i" }}
+            <div class="meta">{{ p.restaurante.ciudad.nombre }} · organiza {% if p.creador_id == yo.id %}tú{% else %}{{ p.creador }}{% endif %}</div>
+        </div>
+    </li>
+    {% empty %}
+    <li class="meta">No tienes planes próximos.</li>
+    {% endfor %}
+</ul>
+
+{% if pasados %}
+<h2>Pasados y cancelados</h2>
+<ul class="lista-avisos">
+    {% for p in pasados %}
+    <li class="aviso-fila">
+        <div>
+            <a href="{% url 'detalle_plan' p.id %}">{{ p.restaurante.nombre }}</a> · {{ p.cuando|date:"j M Y" }}{% if p.cancelado %} · <span class="etiqueta">Cancelado</span>{% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}
