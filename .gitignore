@@ -16,3 +16,4 @@ media/
 carga_progreso.json
 portadas_progreso.json
 *.sqlite3-journal
+completar_progreso.json

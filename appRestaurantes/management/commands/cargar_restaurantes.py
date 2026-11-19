@@ -226,6 +226,7 @@ class Command(BaseCommand):
                 nuevos.append(Restaurante(
                     ciudad=ciudad, nombre=nombre, tipo_cocina=tipo_cocina(tags)[:50],
                     direccion=dire, descripcion=descripcion(tags), foto_url=url_foto,
+                    latitud=centro['lat'], longitud=centro['lon'],  #los nuevos ya entran con su ubicación
                     admite_perros=tags.get('dog') in ('yes', 'leashed'),
                 ))
 

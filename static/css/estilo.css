@@ -450,6 +450,24 @@ a.sticker:hover { text-decoration: none; background: #E0CDB4; }
 .fila-moderar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--linea-suave); }
 .fila-moderar:last-child { border-bottom: 0; }
 
+/* ---------- Tu relación con un restaurante: guardar y visitas confirmadas ---------- */
+.mi-relacion { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.mi-relacion form { margin: 0; }
+.boton-like { display: inline-flex; align-items: center; gap: 8px; }
+.boton-like .icono { width: 18px; height: 18px; }
+.boton-like.activo-guardado { background: var(--azulejo-suave); border-color: var(--estrella); }
+.form-visita { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.form-visita label { font-size: .9375rem; color: var(--tinta-2); }
+.form-visita input[type=date] {
+    font: inherit; font-size: .9375rem; color: var(--tinta); background: var(--papel);
+    border: 1px solid var(--linea); border-radius: 999px; padding: 6px 12px;
+}
+.mis-visitas { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.visita-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--azulejo-suave); border-radius: 999px; padding: 2px 4px 2px 10px; color: var(--tinta-2); }
+.visita-chip form { margin: 0; }
+.visita-chip .boton-texto { width: 22px; height: 22px; border-radius: 50%; font-size: 1rem; line-height: 1; }
+.visita-chip .boton-texto:hover { background: var(--blanco); color: var(--tomate); text-decoration: none; }
+
 /* ---------- Nuestra estética: logo serif, botones redondeados y tarjetas con sombra suave ---------- */
 .logo { display: block; font-family: Georgia, "Times New Roman", serif; font-weight: 700; letter-spacing: 0; }
 .logo span { color: var(--estrella); }

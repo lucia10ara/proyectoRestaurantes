@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import urlencode
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -7,7 +8,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
-from .forms import RegistroForm
+from .forms import RegistroForm, VisitaForm
 from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno
 
 # Create your views here.
@@ -227,7 +228,15 @@ def detalle_restaurante(request, pk):
     restaurante = get_object_or_404(Restaurante, pk=pk)
     media = restaurante.resenas.aggregate(media=Avg('puntuacion'))['media']  #nota media del restaurante
     estrellas = round(media) if media else 0  #redondeada para pintar las estrellas
-    context = {'restaurante': restaurante, 'media': media, 'estrellas': estrellas}
+    yo = perfil_actual(request)
+    context = {
+        'restaurante': restaurante, 'media': media, 'estrellas': estrellas,
+        #lo mío con este restaurante: si lo tengo guardado y mis visitas confirmadas
+        'guardado': bool(yo) and restaurante.guardados.filter(perfil=yo).exists(),
+        'mis_visitas': list(restaurante.visitas.filter(perfil=yo)[:5]) if yo else [],
+        'visita_form': VisitaForm(initial={'fecha': date.today()}),
+        'hoy': date.today(),
+    }
     return render(request, 'restaurantes/detalle_restaurante.html', context)
 
 

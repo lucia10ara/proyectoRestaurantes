@@ -86,6 +86,26 @@ class Restaurante(models.Model):
     admite_perros = models.BooleanField(default=False)  #si se puede ir con perro
     opciones_sin_alergenos = models.ManyToManyField(Alergeno, blank=True, related_name='restaurantes')  #alergenos para los que tiene opciones adaptadas (relación muchos a muchos)
 
+    #ubicación (de OpenStreetMap). Vacía si todavía no la conocemos: el mapa solo enseña los que la tienen
+    latitud = models.FloatField(blank=True, null=True)
+    longitud = models.FloatField(blank=True, null=True)
+
+    #fecha en la que el restaurante se AÑADIÓ A LA APP (no es la fecha de apertura del local, que no la conocemos).
+    #Los importados antes de existir este campo la tienen vacía
+    fecha_alta = models.DateTimeField('Añadido a la app', auto_now_add=True, null=True)
+
+    #datos que se van completando poco a poco (OpenStreetMap, la administradora...).
+    #None significa "no lo sabemos": nunca se enseña como confirmado
+    PRECIOS = [(1, 'Económico'), (2, 'Medio'), (3, 'Caro')]
+    precio = models.PositiveSmallIntegerField('Precio aproximado', choices=PRECIOS, blank=True, null=True)
+    precio_max_persona = models.PositiveSmallIntegerField('Precio máximo por persona (€)', blank=True, null=True)
+    terraza = models.BooleanField('Terraza', blank=True, null=True)
+    menu_del_dia = models.BooleanField('Menú del día', blank=True, null=True)
+    vegetariano = models.BooleanField('Opciones vegetarianas', blank=True, null=True)
+    vegano = models.BooleanField('Opciones veganas', blank=True, null=True)
+    para_grupos = models.BooleanField('Apto para grupos', blank=True, null=True)
+    accesible = models.BooleanField('Accesible', blank=True, null=True)
+    momentos = models.ManyToManyField('MomentoComida', blank=True, related_name='restaurantes', verbose_name='Tipo de comida')
 
     class Meta:
         verbose_name = "Restaurante"
@@ -94,6 +114,11 @@ class Restaurante(models.Model):
         #definimos constraints para hacer el restaurante único por ciudad, nomber y direccion
         constraints = [  #mismo nombre y misma ciudad sí, pero no en la misma dirección
             models.UniqueConstraint(fields=['ciudad', 'nombre', 'direccion'], name='restaurante_unico_por_local'),
+        ]
+        indexes = [  #el mapa busca por zona (latitud/longitud) y novedades por fecha de alta
+            models.Index(fields=['latitud', 'longitud'], name='resto_coordenadas'),
+            models.Index(fields=['fecha_alta'], name='resto_fecha_alta'),
+            models.Index(fields=['tipo_cocina'], name='resto_tipo_cocina'),
         ]
 
     def __str__(self):
@@ -151,6 +176,59 @@ def categoria_cocina(tipo):
         if any(clave in texto for clave in claves):
             return categoria
     return 'generica'
+
+
+class MomentoComida(models.Model):
+    #desayuno, brunch, comida, cena, merienda (tabla pequeña para poder filtrar por varios a la vez)
+    clave = models.SlugField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=30)
+    orden = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Tipo de comida"
+        verbose_name_plural = "Tipos de comida"
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+
+class Guardado(models.Model):
+    #restaurante que un usuario quiere visitar ("pendiente"). Guardar NO es haber ido
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='guardados')
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='guardados')
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Restaurante guardado"
+        verbose_name_plural = "Restaurantes guardados"
+        ordering = ['-fecha']
+        constraints = [models.UniqueConstraint(fields=['perfil', 'restaurante'], name='guardado_unico')]
+
+    def __str__(self):
+        return f"{self.perfil} guardó {self.restaurante}"
+
+
+class Visita(models.Model):
+    #VISITA CONFIRMADA: solo la crea el propio usuario (botón "He estado aquí" o la casilla "Estuve aquí" al reseñar).
+    #Es lo único que cuenta para el diario, el pasaporte, los retos y "amigos que han estado"
+    ORIGENES = [('boton', 'He estado aquí'), ('resena', 'Al escribir una reseña')]
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='visitas')
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='visitas')
+    fecha = models.DateField('Día de la visita')
+    origen = models.CharField(max_length=10, choices=ORIGENES, default='boton')
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Visita confirmada"
+        verbose_name_plural = "Visitas confirmadas"
+        ordering = ['-fecha', '-creada']
+        #una visita por persona, restaurante y día (evita sumar visitas repetidas el mismo día)
+        constraints = [models.UniqueConstraint(fields=['perfil', 'restaurante', 'fecha'], name='visita_unica_por_dia')]
+        indexes = [models.Index(fields=['perfil', 'fecha'], name='visita_perfil_fecha')]
+
+    def __str__(self):
+        return f"{self.perfil} en {self.restaurante} ({self.fecha})"
 
 
 class Resena(models.Model):

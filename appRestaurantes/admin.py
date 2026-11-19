@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario
+from .models import Perfil, Ciudad, Alergeno, Restaurante, Resena, Foto, Comentario, MomentoComida, Guardado, Visita
 
 #Definimos los modelos en el admin para poder registrar instancias
 admin.site.register(Perfil)
@@ -32,3 +32,18 @@ class ResenaAdmin(admin.ModelAdmin):
 admin.site.register(Foto)
 
 admin.site.register(Comentario)
+
+admin.site.register(MomentoComida)
+
+
+@admin.register(Guardado)
+class GuardadoAdmin(admin.ModelAdmin):
+    list_display = ('perfil', 'restaurante', 'fecha')
+    raw_id_fields = ('restaurante',)  #con 62.000 restaurantes un desplegable sería inmanejable
+
+
+@admin.register(Visita)
+class VisitaAdmin(admin.ModelAdmin):
+    list_display = ('perfil', 'restaurante', 'fecha', 'origen')
+    list_filter = ('origen',)
+    raw_id_fields = ('restaurante',)

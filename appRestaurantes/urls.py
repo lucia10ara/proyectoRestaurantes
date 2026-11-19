@@ -34,6 +34,9 @@ urlpatterns = [
     path('fotos/<int:pk>/like/', views_social.like_foto, name='like_foto'),
     path('comentar/<str:tipo>/<int:pk>/', views_social.comentar, name='comentar'),
     path('comentarios/<int:pk>/borrar/', views_social.borrar_comentario, name='borrar_comentario'),
+    path('restaurantes/<int:pk>/guardar/', views_social.guardar_restaurante, name='guardar_restaurante'),
+    path('restaurantes/<int:pk>/visita/', views_social.marcar_visita, name='marcar_visita'),
+    path('visitas/<int:pk>/borrar/', views_social.borrar_visita, name='borrar_visita'),
 
     #solo administradora
     path('panel/', views_social.panel, name='panel'),

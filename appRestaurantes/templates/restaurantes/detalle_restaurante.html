@@ -32,6 +32,37 @@
             {% if user.is_staff %}<a class="boton boton-secundario" href="{% url 'editar_restaurante' restaurante.id %}">{% include 'icono.html' with n='editar' %}Editar restaurante</a>{% endif %}
         </div>
 
+        <!-- tu relación con el sitio: guardarlo (pendiente) es distinto de haber ido (visita confirmada con fecha) -->
+        {% if user.is_authenticated %}
+        <div class="tarjeta mi-relacion">
+            <form method="post" action="{% url 'guardar_restaurante' restaurante.id %}">
+                {% csrf_token %}
+                <button class="boton-like {% if guardado %}activo-guardado{% endif %}" type="submit" aria-pressed="{{ guardado|yesno:'true,false' }}">
+                    {% include 'icono.html' with n='guardar' relleno=guardado %}{% if guardado %}Guardado en pendientes{% else %}Guardar para ir{% endif %}
+                </button>
+            </form>
+
+            <form class="form-visita" method="post" action="{% url 'marcar_visita' restaurante.id %}">
+                {% csrf_token %}
+                <label for="id_fecha_visita">He estado aquí el</label>
+                <input id="id_fecha_visita" type="date" name="fecha" value="{{ hoy|date:'Y-m-d' }}" max="{{ hoy|date:'Y-m-d' }}" required>
+                <button class="boton boton-peque" type="submit">{% include 'icono.html' with n='visita' %}Confirmar visita</button>
+            </form>
+
+            {% if mis_visitas %}
+            <div class="meta mis-visitas">Tus visitas:
+                {% for v in mis_visitas %}
+                <span class="visita-chip">{{ v.fecha|date:"j M Y" }}
+                    <form method="post" action="{% url 'borrar_visita' v.id %}" onsubmit="return confirm('¿Borrar esta visita de tu diario?')">
+                        {% csrf_token %}<button class="boton-texto" type="submit" aria-label="Borrar visita del {{ v.fecha }}">×</button>
+                    </form>
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <h2>Reseñas</h2>
 
         {% for resena in restaurante.resenas.all %}
@@ -66,7 +97,24 @@
                 <dt>Ciudad</dt><dd><a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></dd>
                 <dt>Cocina</dt><dd>{{ restaurante.tipo_cocina }}</dd>
                 {% if restaurante.direccion_visible %}<dt>Dirección</dt><dd>{{ restaurante.direccion_visible }}</dd>{% endif %}
+                <!-- solo se enseña lo que se sabe; lo desconocido no aparece -->
+                {% if restaurante.precio %}<dt>Precio</dt><dd>{{ restaurante.get_precio_display }}{% if restaurante.precio_max_persona %}, hasta {{ restaurante.precio_max_persona }} € por persona{% endif %}</dd>
+                {% elif restaurante.precio_max_persona %}<dt>Precio</dt><dd>Hasta {{ restaurante.precio_max_persona }} € por persona</dd>{% endif %}
+                {% if restaurante.momentos.all %}<dt>Para</dt><dd>{{ restaurante.momentos.all|join:", " }}</dd>{% endif %}
             </dl>
+
+            {% with r=restaurante %}
+            {% if r.terraza is not None or r.menu_del_dia is not None or r.vegetariano is not None or r.vegano is not None or r.para_grupos is not None or r.accesible is not None %}
+            <div class="etiquetas">
+                {% if r.terraza is not None %}<span class="etiqueta {{ r.terraza|yesno:'si,no' }}">{{ r.terraza|yesno:"Terraza,Sin terraza" }}</span>{% endif %}
+                {% if r.menu_del_dia is not None %}<span class="etiqueta {{ r.menu_del_dia|yesno:'si,no' }}">{{ r.menu_del_dia|yesno:"Menú del día,Sin menú del día" }}</span>{% endif %}
+                {% if r.vegetariano is not None %}<span class="etiqueta {{ r.vegetariano|yesno:'si,no' }}">{{ r.vegetariano|yesno:"Opciones vegetarianas,Sin opciones vegetarianas" }}</span>{% endif %}
+                {% if r.vegano is not None %}<span class="etiqueta {{ r.vegano|yesno:'si,no' }}">{{ r.vegano|yesno:"Opciones veganas,Sin opciones veganas" }}</span>{% endif %}
+                {% if r.para_grupos is not None %}<span class="etiqueta {{ r.para_grupos|yesno:'si,no' }}">{{ r.para_grupos|yesno:"Apto para grupos,No apto para grupos" }}</span>{% endif %}
+                {% if r.accesible is not None %}<span class="etiqueta {{ r.accesible|yesno:'si,no' }}">{{ r.accesible|yesno:"Accesible,No accesible" }}</span>{% endif %}
+            </div>
+            {% endif %}
+            {% endwith %}
 
             <div class="etiquetas">
                 <span class="etiqueta {{ restaurante.admite_ninos|yesno:'si,no' }}">{{ restaurante.admite_ninos|yesno:"Admite niños,No admite niños" }}</span>

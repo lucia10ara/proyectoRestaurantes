@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -83,11 +85,38 @@ class ComentarioForm(forms.ModelForm):
         fields = ('texto',)
 
 
-#Edición de un restaurante (solo la administradora): para poner foto, descripción y corregir los datos importados
+#Edición de un restaurante (solo la administradora): para poner foto, descripción y corregir los datos importados.
+#Los sí/no nuevos tienen tres opciones (desconocido, sí, no): lo que no se sabe no se enseña como confirmado
 class RestauranteForm(forms.ModelForm):
     class Meta:
         model = Restaurante
         fields = ('nombre', 'tipo_cocina', 'direccion', 'descripcion', 'foto', 'foto_url',
+                  'latitud', 'longitud', 'precio', 'precio_max_persona', 'momentos',
+                  'terraza', 'menu_del_dia', 'vegetariano', 'vegano', 'para_grupos', 'accesible',
                   'admite_ninos', 'admite_perros', 'opciones_sin_alergenos')
         labels = {'foto': 'Portada (archivo)', 'foto_url': 'o enlace a la portada'}
-        widgets = {'opciones_sin_alergenos': forms.CheckboxSelectMultiple, 'descripcion': forms.Textarea(attrs={'rows': 4})}
+        widgets = {'opciones_sin_alergenos': forms.CheckboxSelectMultiple, 'momentos': forms.CheckboxSelectMultiple,
+                   'descripcion': forms.Textarea(attrs={'rows': 4})}
+
+    def clean(self):
+        datos = super().clean()
+        lat, lon = datos.get('latitud'), datos.get('longitud')
+        if (lat is None) != (lon is None):
+            raise forms.ValidationError('Pon latitud y longitud a la vez, o deja las dos vacías.')
+        if lat is not None and not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            raise forms.ValidationError('Esas coordenadas no son válidas.')
+        return datos
+
+
+#Visita confirmada: el usuario dice qué día estuvo (no puede ser en el futuro)
+class VisitaForm(forms.Form):
+    fecha = forms.DateField(label='¿Qué día fuiste?', widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def clean_fecha(self):
+        fecha = self.cleaned_data['fecha']
+        hoy = date.today()
+        if fecha > hoy:
+            raise forms.ValidationError('La visita no puede ser en el futuro.')
+        if fecha.year < 1950:
+            raise forms.ValidationError('Esa fecha no parece correcta.')
+        return fecha

@@ -7,8 +7,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import ResenaForm, FotoForm, ComentarioForm, RestauranteForm
-from .models import Perfil, Restaurante, Resena, Foto, Comentario
+from .forms import ResenaForm, FotoForm, ComentarioForm, RestauranteForm, VisitaForm
+from .models import Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita
 from .views import perfil_actual
 
 # ======================================================================
@@ -180,6 +180,59 @@ def borrar_comentario(request, pk):
         destino = redirect('detalle_resena', pk=comentario.resena_id)
     comentario.delete()
     return destino
+
+
+# Guardar y visitas confirmadas -----------------------------------
+def volver(request, por_defecto):
+    """Vuelve a la página indicada en 'next' si es de esta misma web; si no, a la de por defecto."""
+    siguiente = request.POST.get('next', '')
+    if siguiente and url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}):
+        return redirect(siguiente)
+    return por_defecto
+
+
+#guardar / quitar de guardados (pendiente de visitar). Guardar NO cuenta como visita
+@login_required
+@require_POST
+def guardar_restaurante(request, pk):
+    restaurante = get_object_or_404(Restaurante, pk=pk)
+    yo = perfil_o_403(request)
+    guardado, creado = Guardado.objects.get_or_create(perfil=yo, restaurante=restaurante)
+    if not creado:
+        guardado.delete()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'guardado': creado})
+    messages.success(request, 'Guardado en tus pendientes.' if creado else 'Quitado de tus pendientes.')
+    return volver(request, redirect('detalle_restaurante', pk=pk))
+
+
+#"He estado aquí": crea una visita confirmada del propio usuario con la fecha que indique
+@login_required
+@require_POST
+def marcar_visita(request, pk):
+    restaurante = get_object_or_404(Restaurante, pk=pk)
+    yo = perfil_o_403(request)
+    form = VisitaForm(request.POST)
+    if form.is_valid():
+        _, creada = Visita.objects.get_or_create(perfil=yo, restaurante=restaurante, fecha=form.cleaned_data['fecha'],
+                                                 defaults={'origen': 'boton'})
+        messages.success(request, 'Visita apuntada en tu diario.' if creada else 'Esa visita ya estaba apuntada.')
+    else:
+        messages.error(request, ' '.join(e for errores in form.errors.values() for e in errores))
+    return volver(request, redirect('detalle_restaurante', pk=pk))
+
+
+#borrar una visita: solo la propia (ni siquiera la administradora borra el diario de otra persona)
+@login_required
+@require_POST
+def borrar_visita(request, pk):
+    visita = get_object_or_404(Visita, pk=pk)
+    if visita.perfil.usuario_id != request.user.id:
+        raise PermissionDenied
+    restaurante_id = visita.restaurante_id
+    visita.delete()
+    messages.success(request, 'Visita borrada.')
+    return volver(request, redirect('detalle_restaurante', pk=restaurante_id))
 
 
 # Administradora --------------------------------------------------
