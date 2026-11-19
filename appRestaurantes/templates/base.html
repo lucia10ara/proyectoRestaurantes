@@ -26,6 +26,7 @@
                 <a class="enlace {% if pagina == 'index' %}activo{% endif %}" href="{% url 'index' %}">{% include 'icono.html' with n='inicio' %}Inicio</a>
                 <a class="enlace {% if pagina == 'explorar' %}activo{% endif %}" href="{% url 'explorar' %}">{% include 'icono.html' with n='explorar' %}Explorar</a>
                 <a class="enlace {% if 'restaurante' in pagina or 'ciudad' in pagina %}activo{% endif %}" href="{% url 'lista_restaurantes' %}">{% include 'icono.html' with n='restaurantes' %}Restaurantes</a>
+                <a class="enlace {% if pagina == 'descubre' or pagina == 'para_ti' or pagina == 'novedades' or pagina == 'joyas' or pagina == 'ruleta' %}activo{% endif %}" href="{% url 'descubre' %}">{% include 'icono.html' with n='descubre' %}Descubre</a>
                 <a class="enlace {% if pagina == 'mapa' %}activo{% endif %}" href="{% url 'mapa' %}">{% include 'icono.html' with n='mapa' %}Mapa</a>
                 <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}">{% include 'icono.html' with n='gente' %}Gente</a>
                 {% if user.is_authenticated and user.perfil %}

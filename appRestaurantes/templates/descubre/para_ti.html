@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Para ti{% endblock %}
+
+{% block contenido %}
+{% include 'descubre/_pestanas.html' %}
+
+<p class="subtitulo">Sitios donde todavía no has estado, según lo que recomienda la gente a la que sigues y la cocina que te gusta. Debajo de cada uno te decimos por qué sale.</p>
+
+<div class="rejilla-resto">
+    {% for r, motivos in recomendados %}
+    <div class="elemento-coleccion">
+        {% include 'tarjeta_restaurante.html' %}
+        <p class="meta motivos">{% for m in motivos %}{{ m }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    </div>
+    {% empty %}
+    <div class="tarjeta">
+        <p>Todavía no tenemos nada que recomendarte. Sigue a más gente, confirma visitas o escribe reseñas y aparecerán aquí.</p>
+        <a class="boton" href="{% url 'lista_perfiles' %}">Ver gente</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if yo.lleva_perros or yo.lleva_ninos %}
+<p class="meta nota-mapa">Solo se muestran sitios que admiten {% if yo.lleva_ninos %}niños{% endif %}{% if yo.lleva_ninos and yo.lleva_perros %} y {% endif %}{% if yo.lleva_perros %}perros{% endif %}, según tus preferencias.</p>
+{% endif %}
+{% endblock %}

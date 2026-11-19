@@ -76,6 +76,7 @@
             {% if con_sesion %}
             <label class="chip"><input type="checkbox" name="amigos" value="1" {% if filtros.amigos %}checked{% endif %}> Recomendados por gente que sigo</label>
             <label class="chip"><input type="checkbox" name="guardados" value="1" {% if filtros.guardados %}checked{% endif %}> Mis guardados</label>
+            <label class="chip"><input type="checkbox" name="no_visitados" value="1" {% if filtros.no_visitados %}checked{% endif %}> Donde aún no he estado</label>
             {% endif %}
             {% if con_buscador %}
             <label class="chip"><input type="checkbox" name="con_fotos" value="1" {% if filtros.con_fotos %}checked{% endif %}> Con fotos de usuarios</label>
@@ -86,7 +87,8 @@
     </details>
 
     <div class="botones-filtros">
-        <button class="boton" type="submit">Filtrar</button>
+        {% if girar %}<input type="hidden" name="girar" value="1">{% endif %}
+        <button class="boton" type="submit">{{ texto_boton|default:"Filtrar" }}</button>
         {% if filtros %}<a class="meta" href="?ciudad=">Quitar filtros</a>{% endif %}
     </div>
 </form>

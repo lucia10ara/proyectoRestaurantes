@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+{% include 'descubre/_pestanas.html' %}
+
+<p class="subtitulo">{{ ayuda }}</p>
+
+{% include 'filtros.html' %}
+
+<p class="meta" style="margin-top:12px">{{ lista.paginator.count|intcomma }} restaurante{{ lista.paginator.count|pluralize }}</p>
+
+<div class="rejilla-resto" style="margin-top:12px">
+    {% for r in lista %}
+    {% include 'tarjeta_restaurante.html' %}
+    {% empty %}
+    <p>No hay restaurantes con esos filtros.</p>
+    {% endfor %}
+</div>
+
+{% if lista.paginator.num_pages > 1 %}
+<nav class="paginacion">
+    {% if lista.has_previous %}<a class="boton boton-secundario" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ lista.previous_page_number }}">← Anterior</a>{% endif %}
+    <span class="meta">Página {{ lista.number }} de {{ lista.paginator.num_pages }}</span>
+    {% if lista.has_next %}<a class="boton boton-secundario" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ lista.next_page_number }}">Siguiente →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

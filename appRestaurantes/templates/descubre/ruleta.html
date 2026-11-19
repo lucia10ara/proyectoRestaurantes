@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Ruleta{% endblock %}
+
+{% block contenido %}
+{% include 'descubre/_pestanas.html' %}
+
+<p class="subtitulo">¿No sabéis dónde comer? Elige una comunidad o ciudad, ajusta lo que quieras y deja que decida la suerte.</p>
+
+{% if ciudad_propia %}<p class="meta">Hemos puesto tu ciudad ({{ ciudad_propia.nombre }}). Cámbiala si quieres.</p>{% endif %}
+
+{% include 'filtros.html' %}
+
+{% if aviso %}<div class="aviso error" style="margin-top:16px">{{ aviso }}</div>{% endif %}
+
+{% if elegido %}
+<section class="ruleta-resultado" aria-live="polite">
+    <h2>Hoy toca…</h2>
+    {% with r=elegido %}{% include 'tarjeta_restaurante.html' %}{% endwith %}
+    <div class="acciones">
+        <a class="boton" href="{% url 'detalle_restaurante' elegido.id %}">Ver ficha</a>
+        <a class="boton boton-secundario" href="?{{ otra_vez }}">Girar otra vez</a>
+        {% if user.is_authenticated %}<a class="boton boton-secundario" href="{% url 'crear_plan' elegido.id %}">{% include 'icono.html' with n='plan' %}Quedar con amigos</a>{% endif %}
+        {% if elegido.latitud %}<a class="boton boton-secundario" href="{% url 'mapa' %}?foco={{ elegido.id }}">{% include 'icono.html' with n='mapa' %}Ver en el mapa</a>{% endif %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

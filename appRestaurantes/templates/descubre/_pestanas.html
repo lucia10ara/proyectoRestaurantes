@@ -1,0 +1,7 @@
+<h1>Descubre</h1>
+<div class="vista-selector" role="group" aria-label="Secciones de Descubre" style="margin-bottom:18px">
+    {% if user.is_authenticated %}{% if seccion == 'para_ti' %}<span class="activo" aria-current="true">Para ti</span>{% else %}<a href="{% url 'para_ti' %}">Para ti</a>{% endif %}{% endif %}
+    {% if seccion == 'novedades' %}<span class="activo" aria-current="true">Novedades</span>{% else %}<a href="{% url 'novedades' %}">Novedades</a>{% endif %}
+    {% if seccion == 'joyas' %}<span class="activo" aria-current="true">Joyas</span>{% else %}<a href="{% url 'joyas' %}">Joyas</a>{% endif %}
+    {% if seccion == 'ruleta' %}<span class="activo" aria-current="true">Ruleta</span>{% else %}<a href="{% url 'ruleta' %}">Ruleta</a>{% endif %}
+</div>

@@ -769,3 +769,107 @@ class DiarioTests(Base):
             Visita.objects.create(perfil=self.ana.perfil, restaurante=self.resto, fecha=date(2026, 10, dia))
         self.assertEqual(logros.estadisticas(self.ana.perfil, hoy=hoy)['visitas_este_mes'], 0)
         self.assertEqual(logros.estadisticas(self.ana.perfil, hoy=date(2026, 10, 20))['visitas_este_mes'], 4)
+
+
+class DescubreTests(Base):
+    """Bloque 7: Para ti, Novedades, Joyas y Ruleta."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.cai = cls.usuario('cai')
+        cls.ana.perfil.siguiendo.add(cls.bea.perfil)  #ana sigue a bea
+        cls.otro = Restaurante.objects.create(ciudad=cls.ciudad, nombre='Bar Recomendado', tipo_cocina='Tapas', direccion='C 2', admite_perros=False)
+        cls.perro = Restaurante.objects.create(ciudad=cls.ciudad, nombre='Bar Perruno', tipo_cocina='Tapas', direccion='C 3', admite_perros=True)
+
+    def resena(self, resto, autor, nota):
+        return Resena.objects.create(restaurante=resto, autor=autor.perfil, puntuacion=nota, titulo='t', texto='x')
+
+    def test_paginas_publicas_y_para_ti_exige_sesion(self):
+        for url in ('/descubre/novedades/', '/descubre/joyas/', '/descubre/ruleta/'):
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+        self.assertEqual(self.client.get('/descubre/para-ti/').status_code, 302)
+        self.assertRedirects(self.client.get('/descubre/'), '/descubre/novedades/')
+        self.entrar(self.ana)
+        self.assertRedirects(self.client.get('/descubre/'), '/descubre/para-ti/')
+
+    def test_para_ti_usa_lo_que_recomiendan_mis_seguidos_y_explica_por_que(self):
+        self.resena(self.otro, self.bea, 5)
+        self.entrar(self.ana)
+        r = self.client.get('/descubre/para-ti/')
+        self.assertEqual([x.id for x, _ in r.context['recomendados']], [self.otro.id])
+        self.assertIn('Lo recomienda bea', r.context['recomendados'][0][1])
+        self.assertContains(r, 'Lo recomienda bea')
+
+    def test_no_recomienda_lo_ya_conocido_ni_lo_mal_valorado(self):
+        self.resena(self.otro, self.bea, 5)
+        self.resena(self.perro, self.bea, 2)  #2 estrellas: no es una recomendación
+        for conocido in ('visita', 'guardado', 'resena'):
+            if conocido == 'visita':
+                Visita.objects.create(perfil=self.ana.perfil, restaurante=self.otro, fecha=date.today())
+            elif conocido == 'guardado':
+                Visita.objects.all().delete()
+                Guardado.objects.create(perfil=self.ana.perfil, restaurante=self.otro)
+            else:
+                Guardado.objects.all().delete()
+                self.resena(self.otro, self.ana, 4)
+            self.entrar(self.ana)
+            ids = [x.id for x, _ in self.client.get('/descubre/para-ti/').context['recomendados']]
+            self.assertNotIn(self.otro.id, ids, conocido)
+            self.assertNotIn(self.perro.id, ids)
+
+    def test_respeta_preferencias_de_perro(self):
+        self.resena(self.otro, self.bea, 5)    #no admite perros
+        self.resena(self.perro, self.bea, 5)   #sí admite
+        self.ana.perfil.lleva_perros = True
+        self.ana.perfil.save()
+        self.entrar(self.ana)
+        ids = [x.id for x, _ in self.client.get('/descubre/para-ti/').context['recomendados']]
+        self.assertEqual(ids, [self.perro.id])
+
+    def test_sin_datos_cae_en_populares_de_su_ciudad(self):
+        self.resena(self.otro, self.cai, 5)  #ana no sigue a cai
+        self.entrar(self.ana)
+        recomendados = self.client.get('/descubre/para-ti/').context['recomendados']
+        self.assertEqual([x.id for x, _ in recomendados], [self.otro.id])
+        self.assertTrue(recomendados[0][1][0].startswith('Popular'))
+
+    def test_novedades_solo_con_fecha_de_alta_y_las_nuevas_primero(self):
+        Restaurante.objects.filter(pk=self.resto.pk).update(fecha_alta=None)  #antiguo: no se sabe cuándo se añadió
+        Restaurante.objects.filter(pk=self.otro.pk).update(fecha_alta=timezone.now() - timedelta(days=3))
+        ids = [r.id for r in self.client.get('/descubre/novedades/').context['lista']]
+        self.assertNotIn(self.resto.id, ids)
+        self.assertEqual(ids[:2], [self.perro.id, self.otro.id])  #el recién creado antes que el de hace 3 días
+
+    def test_joyas_exigen_varias_reseñas_y_nota_alta(self):
+        self.resena(self.otro, self.ana, 5)            #una sola reseña: no basta
+        self.resena(self.perro, self.ana, 5); self.resena(self.perro, self.bea, 5)       #2 reseñas, media 5: joya
+        self.resena(self.resto, self.ana, 5); self.resena(self.resto, self.bea, 3)       #media 4: no llega a 4,5
+        ids = [r.id for r in self.client.get('/descubre/joyas/').context['lista']]
+        self.assertEqual(ids, [self.perro.id])
+
+    def test_ruleta_exige_ciudad_y_respeta_filtros(self):
+        r = self.client.get('/descubre/ruleta/', {'girar': 1})
+        self.assertContains(r, 'Elige al menos una comunidad o una ciudad')
+        self.assertIsNone(r.context['elegido'])
+        r = self.client.get('/descubre/ruleta/', {'girar': 1, 'ciudad': self.ciudad.pk, 'perros': 1})
+        self.assertEqual(r.context['elegido'].id, self.perro.id)  #el único que admite perros
+        r = self.client.get('/descubre/ruleta/', {'girar': 1, 'ciudad': self.ciudad.pk, 'precio': 3})
+        self.assertContains(r, 'No hay ningún restaurante')  #el precio desconocido no cuenta
+
+    def test_ruleta_no_repite_el_anterior_y_no_visitados(self):
+        for _ in range(15):
+            r = self.client.get('/descubre/ruleta/', {'girar': 1, 'ciudad': self.ciudad.pk, 'excluir': self.resto.pk})
+            self.assertNotEqual(r.context['elegido'].id, self.resto.id)
+        Visita.objects.create(perfil=self.ana.perfil, restaurante=self.otro, fecha=date.today())
+        Visita.objects.create(perfil=self.ana.perfil, restaurante=self.resto, fecha=date.today())
+        self.entrar(self.ana)
+        for _ in range(10):
+            r = self.client.get('/descubre/ruleta/', {'girar': 1, 'ciudad': self.ciudad.pk, 'no_visitados': 1})
+            self.assertEqual(r.context['elegido'].id, self.perro.id)
+
+    def test_ruleta_entrada_con_ciudad_propia_y_parametros_basura(self):
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get('/descubre/ruleta/').context['filtros'], {'ciudad': str(self.ciudad.pk)})
+        for malo in ({'girar': 1, 'ciudad': 'abc'}, {'girar': 1, 'ciudad': self.ciudad.pk, 'excluir': 'x'}, {'girar': 1, 'comunidad': 'Nada'}):
+            self.assertEqual(self.client.get('/descubre/ruleta/', malo).status_code, 200, malo)

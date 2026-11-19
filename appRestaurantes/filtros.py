@@ -6,7 +6,7 @@ Los sí/no solo devuelven lo CONFIRMADO: si de un restaurante no sabemos si tien
 """
 from django.db.models import Q
 
-from .models import Resena, Guardado, Foto, Restaurante, MomentoComida, Alergeno, ElementoColeccion
+from .models import Resena, Guardado, Foto, Restaurante, MomentoComida, Alergeno, ElementoColeccion, Visita
 
 #(nombre en la URL, campo del modelo, texto del filtro)
 BOOLEANOS = [
@@ -21,7 +21,7 @@ BOOLEANOS = [
 ]
 #los que van en "Más filtros" (los de siempre, ciudad/alérgeno/niños/perros, se ven a la vista)
 AVANZADOS = {'precio', 'precio_max', 'momento', 'terraza', 'menu', 'vegetariano', 'vegano', 'grupos', 'accesible',
-             'amigos', 'guardados', 'con_fotos'}
+             'amigos', 'guardados', 'con_fotos', 'no_visitados'}
 
 
 def entero(valor, minimo, maximo):
@@ -72,6 +72,8 @@ def filtrar(qs, params, yo, prefijo=''):
             qs = qs.filter(**{p + campo: True})
     for sub in ids_de_restaurantes(params, yo):
         qs = qs.filter(**{campo_id + '__in': sub})
+    if yo and params.get('no_visitados'):  #solo sitios donde todavía no ha estado (visitas confirmadas)
+        qs = qs.exclude(**{campo_id + '__in': Visita.objects.filter(perfil=yo).values('restaurante_id')})
     return qs
 
 

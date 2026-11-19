@@ -661,6 +661,12 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .aviso-fila { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-tarjeta); }
 .aviso-fila.nuevo { border-color: var(--azulejo); background: var(--azulejo-suave); }
 
+/* ---------- Descubre ---------- */
+.motivos { margin: 0; font-style: italic; }
+.ruleta-resultado { margin-top: 24px; max-width: 420px; animation: aparece 380ms var(--ease-out); }
+@keyframes aparece { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ruleta-resultado { animation: none; } }
+
 /* ---------- Pasaporte y retos ---------- */
 .sellos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .sello { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 16px 10px;
