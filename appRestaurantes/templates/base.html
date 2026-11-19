@@ -7,11 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}Restaurantes de España{% endblock %}</title>
 
-    <!-- tipografía: Schibsted Grotesk (Google Fonts); si no carga, se usa la del sistema -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
     <!-- hoja de estilos común a toda la web (está en la carpeta static/css) -->
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 </head>
@@ -25,7 +20,7 @@
 
         <!-- MENÚ LATERAL (ordenador): como en una red social, siempre visible a la izquierda -->
         <aside class="lateral">
-            <a class="logo" href="{% url 'index' %}"><span class="logo-marca" aria-hidden="true"></span>Restaurantes de España</a>
+            <a class="logo" href="{% url 'index' %}">Restaurantes&nbsp;<span>de España</span></a>
 
             <nav class="menu" aria-label="Secciones">
                 <a class="enlace {% if pagina == 'index' %}activo{% endif %}" href="{% url 'index' %}">{% include 'icono.html' with n='inicio' %}Inicio</a>
@@ -71,7 +66,7 @@
 
             <!-- barra superior pegada arriba: buscador siempre a mano (en móvil lleva también el logo) -->
             <header class="barra-superior">
-                <a class="logo logo-movil" href="{% url 'index' %}"><span class="logo-marca" aria-hidden="true"></span>Restaurantes</a>
+                <a class="logo logo-movil" href="{% url 'index' %}">Restaurantes&nbsp;<span>de España</span></a>
                 <form class="buscador-barra" method="get" action="{% url 'lista_restaurantes' %}" role="search">
                     {% include 'icono.html' with n='buscar' %}
                     <input type="search" name="q" placeholder="Busca un restaurante o un tipo de cocina" aria-label="Buscar restaurantes">
