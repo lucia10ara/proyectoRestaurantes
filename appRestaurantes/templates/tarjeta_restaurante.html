@@ -2,11 +2,10 @@
      Necesita que el restaurante venga con media, num_resenas y estrellas (los calcula la vista con Avg y Count) -->
 <article class="resto">
     <a class="resto-foto" href="{% url 'detalle_restaurante' r.id %}">
-        {% if r.imagen_src %}
-        <img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}">
-        {% else %}
-        <span class="sin-imagen">🍽</span>
-        {% endif %}
+        <!-- foto real si hay (portada o la más votada de los usuarios); si no, ilustración según la cocina.
+             Si un enlace externo falla, onerror pone la ilustración (this.onerror=null evita un bucle) -->
+        <img src="{{ r.imagen_src }}" alt="Portada de {{ r.nombre }}" loading="lazy"
+             onerror="this.onerror=null;this.src='{{ r.imagen_generica }}'">
     </a>
 
     <div class="resto-info">

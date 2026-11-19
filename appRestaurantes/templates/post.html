@@ -1,0 +1,58 @@
+{# una publicación del feed: puede ser una foto o una reseña (p.tipo_post). Necesita 'p' y la variable 'next' para volver al feed al dar me gusta #}
+<article class="post">
+
+    <!-- cabecera: quién lo publica y dónde -->
+    <div class="post-cab">
+        <a href="{% url 'detalle_perfil' p.autor.id %}">
+            {% if p.autor.imagen_src %}<img class="avatar" src="{{ p.autor.imagen_src }}" alt="">
+            {% else %}<div class="avatar">{{ p.autor.usuario.username|first|upper }}</div>{% endif %}
+        </a>
+        <div class="quien">
+            <a href="{% url 'detalle_perfil' p.autor.id %}"><strong>{{ p.autor }}</strong></a>
+            {% if p.es_amigo %}<b class="amigo">amigo</b>{% endif %}
+            <div class="meta">
+                en <a href="{% url 'detalle_restaurante' p.restaurante.id %}">{{ p.restaurante.nombre }}</a>
+                · {{ p.restaurante.ciudad.nombre }} · {{ p.fecha|date:"j M" }}
+            </div>
+        </div>
+    </div>
+
+    {% if p.tipo_post == 'foto' %}
+    <!-- publicación de foto -->
+    <!-- doble clic sobre la foto = me gusta (static/js/megusta.js). La foto no es un enlace para que el primer clic no cambie de página -->
+    <div class="post-media" data-like-id="{{ p.id }}" data-like-url="{% url 'like_foto' p.id %}"
+         data-login-url="{% url 'login' %}?next={{ next|urlencode }}" {% if user.is_authenticated %}data-auth="1"{% endif %}
+         title="Doble clic para dar me gusta">
+        <img class="post-img" src="{{ p.imagen_src }}" alt="{{ p.pie|default:'Foto' }}" loading="lazy">
+        <span class="corazon" aria-hidden="true">♥</span>
+    </div>
+    {% if p.pie %}<p class="post-texto">{{ p.pie }}</p>{% endif %}
+
+    <div class="post-acciones">
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'like_foto' p.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="accion {% if p.me_gusta %}activo{% endif %}" type="submit" data-like-boton="{{ p.id }}">{% if p.me_gusta %}♥{% else %}♡{% endif %} {{ p.num_likes }}</button>
+        </form>
+        {% else %}
+        <a class="accion" href="{% url 'login' %}?next={{ next }}">♡ {{ p.num_likes }}</a>
+        {% endif %}
+        <a class="accion" href="{% url 'detalle_foto' p.id %}">💬 {{ p.num_comentarios }}</a>
+        <span class="etiqueta">{{ p.get_tipo_display }}</span>
+    </div>
+
+    {% else %}
+    <!-- publicación de reseña -->
+    <div class="post-resena">
+        {% include 'estrellas.html' with n=p.puntuacion %}
+        <h3><a href="{% url 'detalle_resena' p.id %}">{{ p.titulo }}</a></h3>
+        <p>{{ p.texto|truncatewords:45 }}</p>
+    </div>
+    <div class="post-acciones">
+        <a class="accion" href="{% url 'detalle_resena' p.id %}">💬 {{ p.num_comentarios }}</a>
+        <span class="etiqueta">Reseña</span>
+    </div>
+    {% endif %}
+
+</article>

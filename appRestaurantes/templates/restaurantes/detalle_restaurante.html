@@ -5,8 +5,8 @@
 {% block contenido %}
 
 <!-- foto de portada, solo si el restaurante tiene -->
-{% if restaurante.imagen_src %}
-<img class="imagen-grande" src="{{ restaurante.imagen_src }}" alt="Portada de {{ restaurante.nombre }}">
+{% if restaurante.imagen_real %}
+<img class="imagen-grande" src="{{ restaurante.imagen_real }}" alt="Portada de {{ restaurante.nombre }}" onerror="this.style.display='none'">
 {% endif %}
 
 <div class="dos-columnas">
@@ -15,11 +15,22 @@
         <h1>{{ restaurante.nombre }}</h1>
         <!-- nota media (se calcula en la vista) -->
         <p>{% include 'estrellas.html' with n=estrellas grande=True %} {% if media %}<strong>{{ media|floatformat:1 }}</strong> · {{ restaurante.resenas.count }} reseña{{ restaurante.resenas.count|pluralize }}{% else %}<span class="meta">Sin reseñas todavía</span>{% endif %}</p>
-        <p class="subtitulo">{{ restaurante.tipo_cocina }} · {{ restaurante.direccion }}, <a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
+        <p class="subtitulo">{{ restaurante.tipo_cocina }} · {% if restaurante.direccion_visible %}{{ restaurante.direccion_visible }}, {% endif %}<a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
 
         {% if restaurante.descripcion %}
-        <p>{{ restaurante.descripcion }}</p>
+        <p style="white-space:pre-line">{{ restaurante.descripcion }}</p>
         {% endif %}
+
+        <!-- publicar: solo con sesión iniciada. Editar: solo la administradora -->
+        <div class="acciones">
+            {% if user.is_authenticated %}
+            <a class="boton" href="{% url 'crear_resena' restaurante.id %}">✍ Escribir reseña</a>
+            <a class="boton boton-secundario" href="{% url 'subir_foto' restaurante.id %}">📷 Subir foto</a>
+            {% else %}
+            <a class="boton" href="{% url 'login' %}?next={{ request.path }}">Inicia sesión para opinar</a>
+            {% endif %}
+            {% if user.is_staff %}<a class="boton boton-secundario" href="{% url 'editar_restaurante' restaurante.id %}">⚙ Editar restaurante</a>{% endif %}
+        </div>
 
         <h2>Reseñas</h2>
 
@@ -36,6 +47,11 @@
             <h3 style="margin-top:12px"><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
             {% include 'estrellas.html' with n=resena.puntuacion %}
             <p>{{ resena.texto|truncatewords:30 }}</p>
+            {% if user.is_staff or resena.autor.usuario_id == user.id %}
+            <form method="post" action="{% url 'borrar_resena' resena.id %}" onsubmit="return confirm('¿Eliminar esta reseña?')">
+                {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar</button>
+            </form>
+            {% endif %}
         </div>
 
         {% empty %}
@@ -49,7 +65,7 @@
             <dl class="datos">
                 <dt>Ciudad</dt><dd><a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></dd>
                 <dt>Cocina</dt><dd>{{ restaurante.tipo_cocina }}</dd>
-                <dt>Dirección</dt><dd>{{ restaurante.direccion }}</dd>
+                {% if restaurante.direccion_visible %}<dt>Dirección</dt><dd>{{ restaurante.direccion_visible }}</dd>{% endif %}
             </dl>
 
             <div class="etiquetas">

@@ -1,3 +1,6 @@
+from urllib.parse import urlencode
+from django.core.paginator import Paginator
+from django.http import JsonResponse
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import Round
 from django.contrib.auth import login
@@ -14,6 +17,33 @@ from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno
 #Hemos decidido no crear vistas para los modelos Comentario y Alergeno:
 # -Comentario: no tiene sentido por si solo, siempre va de una foto o de una reseña así que se consulta desde la vista de detalle de esa foto o reseña
 # -Alergeno: solo sirve para etiquetar restaurantes, que es donde se consulta
+
+
+#ciudades para los desplegables: con miles de pueblos importados, solo salen las que tienen bastantes restaurantes
+#(más la que esté elegida, para que no desaparezca del desplegable)
+MIN_RESTAURANTES_CIUDAD = 15
+
+def ciudades_principales(elegida=None, comunidad=None):
+    ciudades = Ciudad.objects.annotate(n=Count('restaurantes')).order_by('nombre')
+    if comunidad:  #con una comunidad elegida salen todas sus ciudades que tengan algún restaurante
+        return ciudades.filter(comunidad=comunidad, n__gte=1)
+    condicion = Q(n__gte=MIN_RESTAURANTES_CIUDAD)
+    if elegida:
+        condicion |= Q(pk=elegida)
+    return ciudades.filter(condicion)
+
+
+#todas las comunidades que hay en la base de datos, para el primer desplegable
+def lista_comunidades():
+    return (Ciudad.objects.exclude(comunidad__isnull=True).exclude(comunidad='')
+            .order_by('comunidad').values_list('comunidad', flat=True).distinct())
+
+
+#devuelve en JSON las ciudades de una comunidad, para rellenar el segundo desplegable sin recargar la página
+def ciudades_comunidad(request):
+    comunidad = request.GET.get('comunidad', '')
+    datos = [{'id': c.id, 'nombre': c.nombre} for c in ciudades_principales(comunidad=comunidad)] if comunidad else []
+    return JsonResponse(datos, safe=False)
 
 
 #perfil del usuario que ha iniciado sesión (None si no ha entrado o si es un usuario sin perfil, p. ej. creado a mano en el admin)
@@ -51,34 +81,49 @@ def seguir(request, pk):
 
 #Pagina principal: portada con cifras, los restaurantes mejor valorados (tarjetas lado a lado), últimas fotos y reseñas
 def index(request):
-    #los restaurantes mejor valorados (Avg calcula la media de las puntuaciones de sus reseñas)
-    #estrellas = media redondeada, para pintarlas (igual que en la lista de restaurantes)
-    destacados = (Restaurante.objects.select_related('ciudad')
-                  .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
-                  .annotate(estrellas=Round('media'))
-                  .order_by('-media', 'nombre')[:6])
-
-    #select_related trae los datos relacionados de golpe para no hacer muchas consultas
-    ultimas_fotos = Foto.objects.select_related('restaurante').annotate(num_likes=Count('likes'))[:8]
-
-    #si hay sesión, el feed son las fotos de la gente a la que sigo (los amigos son seguidos mutuos, así que ya están incluidos)
     yo = perfil_actual(request)
-    feed = []
-    if yo:
-        amigos_ids = set(yo.amigos.values_list('id', flat=True))
-        feed = list(Foto.objects.filter(autor__in=yo.siguiendo.all())
-                    .select_related('autor__usuario', 'restaurante').annotate(num_likes=Count('likes'))[:12])
-        for foto in feed:
-            foto.es_amigo = foto.autor_id in amigos_ids  #para poner la etiqueta "amigo" en la plantilla
+
+    #pestañas del feed: "Siguiendo" (publicaciones mías y de a quien sigo) o "Descubrir" (de todos).
+    #Sin sesión, o si todavía no sigo a nadie, se enseña Descubrir
+    ids_siguiendo = list(yo.siguiendo.values_list('id', flat=True)) + [yo.id] if yo else []
+    sigo_a_alguien = len(ids_siguiendo) > 1
+    modo = 'siguiendo' if (yo and sigo_a_alguien and request.GET.get('vista') != 'descubrir') else 'descubrir'
+
+    fotos = (Foto.objects.select_related('autor__usuario', 'restaurante__ciudad')
+             .annotate(num_likes=Count('likes', distinct=True), num_comentarios=Count('comentarios', distinct=True)))
+    resenas = (Resena.objects.select_related('autor__usuario', 'restaurante__ciudad')
+               .annotate(num_comentarios=Count('comentarios', distinct=True)))
+    if modo == 'siguiendo':
+        fotos, resenas = fotos.filter(autor_id__in=ids_siguiendo), resenas.filter(autor_id__in=ids_siguiendo)
+
+    #el feed mezcla fotos y reseñas, de lo más nuevo a lo más antiguo
+    fotos, resenas = list(fotos[:15]), list(resenas[:15])
+    for f in fotos:
+        f.tipo_post = 'foto'
+    for r in resenas:
+        r.tipo_post = 'resena'
+    publicaciones = sorted(fotos + resenas, key=lambda p: (p.fecha, p.id), reverse=True)[:20]
+
+    me_gustan = set(yo.fotos_gustadas.values_list('id', flat=True)) if yo else set()
+    amigos_ids = set(yo.amigos.values_list('id', flat=True)) if yo else set()
+    for p in publicaciones:
+        p.me_gusta = p.tipo_post == 'foto' and p.id in me_gustan
+        p.es_amigo = p.autor_id in amigos_ids  #para poner la etiqueta "amigo"
+
+    #columna derecha: gente a la que seguir y restaurantes mejor valorados (solo los que ya tienen reseñas)
+    sugeridos = Perfil.objects.select_related('usuario', 'ciudad').exclude(id__in=ids_siguiendo).order_by('?')[:5]
+    destacados = (Restaurante.objects.filter(resenas__isnull=False).select_related('ciudad')
+                  .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
+                  .order_by('-media', '-num_resenas')[:4])
 
     context = {
         'mi_perfil': yo,
-        'feed': feed,
+        'modo': modo,
+        'sigo_a_alguien': sigo_a_alguien,
+        'publicaciones': publicaciones,
+        'sugeridos': sugeridos,
         'destacados': destacados,
-        'ultimas_fotos': ultimas_fotos,
-        'ultimas_resenas': Resena.objects.select_related('autor__usuario', 'restaurante')[:4],
-        'perfiles': Perfil.objects.select_related('usuario')[:5],
-        #cifras de la portada
+        #cifras (para la bienvenida de quien no ha entrado)
         'total_restaurantes': Restaurante.objects.count(),
         'total_resenas': Resena.objects.count(),
         'total_fotos': Foto.objects.count(),
@@ -105,6 +150,8 @@ def explorar(request):
     ciudad = filtros.get('ciudad')
     alergeno = filtros.get('alergeno')
     tipo = filtros.get('tipo')
+    if filtros.get('comunidad'):
+        fotos = fotos.filter(restaurante__ciudad__comunidad=filtros['comunidad'])
     if ciudad:
         fotos = fotos.filter(restaurante__ciudad_id=ciudad)
     if filtros.get('ninos'):
@@ -118,7 +165,8 @@ def explorar(request):
 
     context = {
         'fotos': fotos.distinct(),
-        'ciudades': Ciudad.objects.all(),
+        'comunidades': lista_comunidades(),
+        'ciudades': ciudades_principales(ciudad, filtros.get('comunidad')),
         'alergenos': Alergeno.objects.all(),
         'tipos': Foto.TIPOS,
         'filtros': filtros,  #para dejar marcados los filtros elegidos
@@ -140,6 +188,8 @@ def lista_restaurantes(request):
         restaurantes = restaurantes.filter(Q(nombre__icontains=q) | Q(tipo_cocina__icontains=q))
 
     #filtros (llegan en la URL igual que en explorar)
+    if request.GET.get('comunidad'):
+        restaurantes = restaurantes.filter(ciudad__comunidad=request.GET['comunidad'])
     if request.GET.get('ciudad'):
         restaurantes = restaurantes.filter(ciudad_id=request.GET['ciudad'])
     if request.GET.get('ninos'):
@@ -155,12 +205,18 @@ def lista_restaurantes(request):
     else:
         restaurantes = restaurantes.order_by('-media', 'nombre')
 
+    #paginación: 24 por página (con decenas de miles de restaurantes no se pueden pintar todos de golpe)
+    page_obj = Paginator(restaurantes.distinct(), 24).get_page(request.GET.get('page'))
+    filtros = {k: v for k, v in request.GET.items() if v and k != 'page'}
+
     context = {
-        'restaurantes': restaurantes.distinct(),
-        'ciudades': Ciudad.objects.all(),
+        'page_obj': page_obj,
+        'comunidades': lista_comunidades(),
+        'ciudades': ciudades_principales(request.GET.get('ciudad'), request.GET.get('comunidad')),
         'alergenos': Alergeno.objects.all(),
-        'filtros': {k: v for k, v in request.GET.items() if v},
+        'filtros': filtros,
         'q': q,
+        'querystring': urlencode(filtros),  #para que los enlaces de página conserven búsqueda y filtros
     }
     return render(request, 'restaurantes/lista_restaurantes.html', context)
 
@@ -195,7 +251,8 @@ def lista_fotos(request):
 
 def detalle_foto(request, pk):
     foto = get_object_or_404(Foto, pk=pk)
-    context = {'foto': foto}
+    yo = perfil_actual(request)
+    context = {'foto': foto, 'me_gusta': bool(yo) and foto.likes.filter(pk=yo.pk).exists()}  #para pintar el botón de me gusta
     return render(request, 'fotos/detalle_foto.html', context)
 
 
@@ -220,7 +277,7 @@ def detalle_perfil(request, pk):
 
 #Ciudades -----------------------------------
 def lista_ciudades(request):
-    ciudades = Ciudad.objects.all()
+    ciudades = ciudades_principales()
     context = {'ciudades': ciudades}
     return render(request, 'ciudades/lista_ciudades.html', context)
 

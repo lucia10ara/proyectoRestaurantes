@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views, views_social
 
 #index y listas de listas y detalles de cada modelo 
 
@@ -24,6 +24,21 @@ urlpatterns = [
     path('restaurantes/<int:pk>/', views.detalle_restaurante, name='detalle_restaurante'),
 
 
+    #publicar y moderar (usuarios con sesión; editar y borrar: el dueño o la administradora)
+    path('publicar/', views_social.publicar, name='publicar'),
+    path('restaurantes/<int:pk>/resena/nueva/', views_social.crear_resena, name='crear_resena'),
+    path('restaurantes/<int:pk>/foto/nueva/', views_social.subir_foto, name='subir_foto'),
+    path('resenas/<int:pk>/editar/', views_social.editar_resena, name='editar_resena'),
+    path('resenas/<int:pk>/borrar/', views_social.borrar_resena, name='borrar_resena'),
+    path('fotos/<int:pk>/borrar/', views_social.borrar_foto, name='borrar_foto'),
+    path('fotos/<int:pk>/like/', views_social.like_foto, name='like_foto'),
+    path('comentar/<str:tipo>/<int:pk>/', views_social.comentar, name='comentar'),
+    path('comentarios/<int:pk>/borrar/', views_social.borrar_comentario, name='borrar_comentario'),
+
+    #solo administradora
+    path('panel/', views_social.panel, name='panel'),
+    path('restaurantes/<int:pk>/editar/', views_social.editar_restaurante, name='editar_restaurante'),
+
     #Reseñas-----------
     path('resenas/', views.lista_resenas, name='lista_resenas'),
     path('resenas/<int:pk>/', views.detalle_resena, name='detalle_resena'),
@@ -34,6 +49,7 @@ urlpatterns = [
 
     #Ciudades------------
     path('ciudades/', views.lista_ciudades, name='lista_ciudades'),
+    path('ciudades/por-comunidad/', views.ciudades_comunidad, name='ciudades_comunidad'),  #JSON con las ciudades de una comunidad
     path('ciudades/<int:pk>/', views.detalle_ciudad, name='detalle_ciudad'),
 
     #Perfiles------------------

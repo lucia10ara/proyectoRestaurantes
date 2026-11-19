@@ -2,7 +2,6 @@
 <!DOCTYPE html>
 <html lang="es">
 
-<!-- añadimos una barra superior de navegacion para que se pueda acceder a cada seccion desde todas las paginas -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,54 +13,90 @@
 
 <body>
 
-    <!-- barra de navegación (la extienden desde su html) -->
     <!-- url_name nos dice en qué página estamos para marcar el enlace activo -->
     {% with pagina=request.resolver_match.url_name|default:'' %}
-    <nav class="barra">
-        <a class="logo" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
 
-        <!-- enlaces a las distintas secciones de la web -->
-        <div class="enlaces">
-            <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}">Inicio</a>
-            <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}">Explorar</a>
-            <a href="{% url 'lista_ciudades' %}" class="{% if 'ciudad' in pagina %}activo{% endif %}">Ciudades</a>
-            <a href="{% url 'lista_restaurantes' %}" class="{% if 'restaurante' in pagina %}activo{% endif %}">Restaurantes</a>
-            <a href="{% url 'lista_resenas' %}" class="{% if 'resena' in pagina %}activo{% endif %}">Reseñas</a>
-            <a href="{% url 'lista_fotos' %}" class="{% if 'foto' in pagina %}activo{% endif %}">Fotos</a>
-            <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}">Perfiles</a>
-        </div>
+    <div class="app">
 
-        <!-- zona de usuario: si ha entrado, su perfil y salir; si no, entrar o crear cuenta -->
-        <div class="usuario">
-            {% if user.is_authenticated %}
-                {% if user.perfil %}<a class="mi-perfil" href="{% url 'detalle_perfil' user.perfil.id %}">👤 {{ user.username }}</a>
-                {% else %}<span class="mi-perfil">👤 {{ user.username }}</span>{% endif %}
-                {% if user.is_staff %}<a class="boton boton-secundario" href="/admin/">Administración</a>{% endif %}
-                <!-- Django solo deja cerrar sesión con POST -->
-                <form method="post" action="{% url 'logout' %}" style="display:inline">
-                    {% csrf_token %}
-                    <button class="boton" type="submit">Salir</button>
+        <!-- MENÚ LATERAL (ordenador): como en una red social, siempre visible a la izquierda -->
+        <aside class="lateral">
+            <a class="logo" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
+
+            <nav class="menu">
+                <a class="enlace {% if pagina == 'index' %}activo{% endif %}" href="{% url 'index' %}"><span class="ico">⌂</span>Inicio</a>
+                <a class="enlace {% if pagina == 'explorar' %}activo{% endif %}" href="{% url 'explorar' %}"><span class="ico">⌕</span>Explorar</a>
+                <a class="enlace {% if 'restaurante' in pagina or 'ciudad' in pagina %}activo{% endif %}" href="{% url 'lista_restaurantes' %}"><span class="ico">🍽</span>Restaurantes</a>
+                <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}"><span class="ico">☺</span>Gente</a>
+                {% if user.is_authenticated and user.perfil %}
+                <a class="enlace {% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}" href="{% url 'detalle_perfil' user.perfil.id %}"><span class="ico">👤</span>Mi perfil</a>
+                {% endif %}
+                {% if user.is_staff %}
+                <a class="enlace {% if pagina == 'panel' %}activo{% endif %}" href="{% url 'panel' %}"><span class="ico">⚙</span>Panel</a>
+                {% endif %}
+            </nav>
+
+            <a class="boton boton-grande" href="{% url 'publicar' %}">＋ Publicar</a>
+
+            <!-- zona de usuario, abajo del todo -->
+            <div class="usuario-lateral">
+                {% if user.is_authenticated %}
+                    <div class="fila">
+                        {% if user.perfil.imagen_src %}<img class="avatar pequeno" src="{{ user.perfil.imagen_src }}" alt="">
+                        {% else %}<div class="avatar pequeno">{{ user.username|first|upper }}</div>{% endif %}
+                        <div class="quien">
+                            <strong>{{ user.username }}</strong>
+                            <div class="meta">{% if user.is_staff %}Administradora{% else %}Usuario{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="fila" style="margin-top:10px">
+                        {% if user.is_staff %}<a class="enlace-suave" href="/admin/">Django admin</a>{% endif %}
+                        <!-- Django solo deja cerrar sesión con POST -->
+                        <form method="post" action="{% url 'logout' %}" style="margin-left:auto">
+                            {% csrf_token %}
+                            <button class="boton-texto" type="submit">Salir</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <a class="boton boton-secundario" href="{% url 'login' %}">Iniciar sesión</a>
+                    <a class="enlace-suave" href="{% url 'registro' %}">Crear cuenta</a>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- COLUMNA PRINCIPAL -->
+        <div class="columna">
+
+            <!-- barra superior pegada arriba: buscador siempre a mano (en móvil lleva también el logo) -->
+            <header class="barra-superior">
+                <a class="logo logo-movil" href="{% url 'index' %}">Restaurantes <span>de España</span></a>
+                <form class="buscador-barra" method="get" action="{% url 'lista_restaurantes' %}">
+                    <input type="search" name="q" placeholder="🔍 Buscar restaurantes o tipo de cocina…" aria-label="Buscar restaurantes">
                 </form>
-            {% else %}
-                <a class="mi-perfil" href="{% url 'login' %}">Iniciar sesión</a>
-                <a class="boton" href="{% url 'registro' %}">Crear cuenta</a>
-            {% endif %}
+                {% if not user.is_authenticated %}
+                <a class="boton boton-peque solo-movil" href="{% url 'login' %}">Entrar</a>
+                {% endif %}
+            </header>
+
+            <!--aqui se mete el contenido de cada pag -->
+            <main class="contenido">
+                <!-- avisos ("Reseña publicada", errores...) -->
+                {% for mensaje in messages %}
+                <div class="aviso {{ mensaje.tags }}">{{ mensaje }}</div>
+                {% endfor %}
+
+                {% block contenido %}{% endblock %}
+            </main>
+
+            <footer class="pie">Restaurantes de España · Proyecto de Ingeniería Web</footer>
         </div>
-    </nav>
-
-    <!--aqui se mete el contenido de cada pag -->
-    <main class="contenido">
-        {% block contenido %}{% endblock %}
-    </main>
-
-    <footer class="pie">Restaurantes de España · Proyecto de Ingeniería Web</footer>
+    </div>
 
     <!-- barra inferior solo para móvil (como la de instagram), en ordenador está oculta con CSS -->
     <nav class="barra-movil">
         <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}"><span>⌂</span>Inicio</a>
         <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}"><span>⌕</span>Explorar</a>
-        <a href="{% url 'lista_restaurantes' %}" class="{% if 'restaurante' in pagina %}activo{% endif %}"><span>🍽</span>Sitios</a>
-        <a href="{% url 'lista_perfiles' %}" class="{% if 'perfil' in pagina %}activo{% endif %}"><span>☺</span>Perfiles</a>
+        <a href="{% url 'publicar' %}" class="publicar-movil"><span>＋</span></a>
+        <a href="{% url 'lista_perfiles' %}" class="{% if pagina == 'lista_perfiles' %}activo{% endif %}"><span>☺</span>Gente</a>
         {% if user.is_authenticated and user.perfil %}
         <a href="{% url 'detalle_perfil' user.perfil.id %}"><span>👤</span>Yo</a>
         {% else %}
@@ -70,6 +105,9 @@
     </nav>
 
     {% endwith %}
+
+    <!-- doble clic en una foto = me gusta -->
+    <script src="{% static 'js/megusta.js' %}"></script>
 </body>
 
 </html>

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Publicar{% endblock %}
+
+{# primer paso para publicar: buscar el restaurante y elegir si es reseña o foto #}
+{% block contenido %}
+
+<div class="columna-estrecha">
+    <h1>Nueva publicación</h1>
+    <p class="subtitulo">Busca el restaurante del que quieres hablar.</p>
+
+    <form class="filtros" method="get" action="{% url 'publicar' %}">
+        <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="🔍 Nombre del restaurante…" autofocus>
+        <button class="boton" type="submit">Buscar</button>
+    </form>
+
+    {% if titulo_lista %}<h2>{{ titulo_lista }}</h2>{% endif %}
+
+    {% for r in restaurantes %}
+    <div class="tarjeta fila resultado">
+        <img class="mini-resto-foto" src="{{ r.imagen_src }}" alt="" loading="lazy" onerror="this.onerror=null;this.src='{{ r.imagen_generica }}'">
+        <div class="quien">
+            <a href="{% url 'detalle_restaurante' r.id %}"><strong>{{ r.nombre }}</strong></a>
+            <div class="meta">{{ r.tipo_cocina }} · {% if r.direccion_visible %}{{ r.direccion_visible }}, {% endif %}{{ r.ciudad.nombre }}</div>
+        </div>
+        <div class="fila botones-publicar">
+            <a class="boton boton-peque" href="{% url 'crear_resena' r.id %}">✍ Reseña</a>
+            <a class="boton boton-peque boton-secundario" href="{% url 'subir_foto' r.id %}">📷 Foto</a>
+        </div>
+    </div>
+    {% empty %}
+    {% if q %}<p>No hemos encontrado ningún restaurante con «{{ q }}».</p>
+    {% elif not titulo_lista %}<p class="suave">Escribe al menos dos letras del nombre.</p>{% endif %}
+    {% endfor %}
+</div>
+
+{% endblock %}

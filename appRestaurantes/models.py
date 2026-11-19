@@ -1,4 +1,7 @@
+import unicodedata
+
 from django.contrib.auth.models import User
+from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -97,11 +100,57 @@ class Restaurante(models.Model):
         return self.nombre
 
     
+    #imagen del restaurante en 3 niveles, se usa el primero que exista:
+    #  1) la portada puesta por la administradora (archivo o enlace; también los enlaces de OpenStreetMap)
+    #  2) la foto con más me gusta que hayan subido los usuarios a este restaurante
+    #  3) una ilustración según el tipo de cocina
     @property
-    def imagen_src(self):
+    def direccion_visible(self):  #los importados sin calle guardan las coordenadas como dirección: eso no se enseña
+        return '' if self.direccion.startswith('Coordenadas') else self.direccion
+
+    @property
+    def imagen_real(self):  #solo fotos de verdad (niveles 1 y 2), None si no hay
         if self.foto:
             return self.foto.url
-        return self.foto_url
+        if self.foto_url:
+            return self.foto_url
+        mejor = self.fotos.annotate(n=models.Count('likes')).order_by('-n', '-id').first()
+        return mejor.imagen_src if mejor else None
+
+    @property
+    def imagen_generica(self):  #ilustración según la cocina (nivel 3)
+        return static(f'img/cocinas/{categoria_cocina(self.tipo_cocina)}.svg')
+
+    @property
+    def imagen_src(self):  #la que usan las tarjetas: foto real si hay, y si no la ilustración
+        return self.imagen_real or self.imagen_generica
+
+
+#categoría de ilustración según el tipo de cocina (se busca la palabra clave, sin tildes ni mayúsculas)
+CATEGORIAS_COCINA = [
+    ('pizza', ('pizz',)),
+    ('sushi', ('japon', 'sushi', 'ramen', 'corean')),
+    ('pasta', ('italian', 'pasta')),
+    ('hamburguesa', ('hamburg', 'american', 'burger')),
+    ('asiatica', ('chin', 'asiat', 'thai', 'vietnam')),
+    ('mexicana', ('mexic', 'argentin', 'peruan', 'brasil')),
+    ('kebab', ('kebab', 'turco', 'arabe', 'libanes', 'marroqu', 'indio')),
+    ('marisco', ('marisq', 'marisc', 'pescado', 'fish')),
+    ('carne', ('asador', 'parrilla', 'pollo', 'carne', 'steak')),
+    ('arroz', ('arroc',)),
+    ('vegetariano', ('vegetar', 'vegan')),
+    ('bocadillo', ('bocadill', 'sandwich')),
+    ('cafe', ('cafeter', 'coffee')),
+    ('tapas', ('tapas', 'pintxo', 'sidrer', 'cider', 'vasco', 'basque', 'regional', 'espan', 'mediterr')),
+]
+
+def categoria_cocina(tipo):
+    texto = unicodedata.normalize('NFD', (tipo or '').lower())
+    texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')  #quitamos las tildes
+    for categoria, claves in CATEGORIAS_COCINA:
+        if any(clave in texto for clave in claves):
+            return categoria
+    return 'generica'
 
 
 class Resena(models.Model):

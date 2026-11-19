@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Panel de administración{% endblock %}
+
+{# solo lo ve la administradora (is_staff): resumen y moderación rápida #}
+{% block contenido %}
+
+<h1>Panel</h1>
+<p class="subtitulo">Resumen de la web y últimas publicaciones para moderar.</p>
+
+<div class="cifras panel-cifras">
+    {% for nombre, valor in cifras %}
+    <div><strong>{{ valor }}</strong><span>{{ nombre }}</span></div>
+    {% endfor %}
+</div>
+
+<div class="dos-columnas">
+
+    <div>
+        <h2>Últimas reseñas</h2>
+        <div class="tarjeta">
+            {% for r in ultimas_resenas %}
+            <div class="fila-moderar">
+                <div>
+                    <a href="{% url 'detalle_resena' r.id %}"><strong>{{ r.titulo }}</strong></a>
+                    <div class="meta">{{ r.autor }} en {{ r.restaurante.nombre }} · {{ r.puntuacion }}★</div>
+                </div>
+                <form method="post" action="{% url 'borrar_resena' r.id %}" onsubmit="return confirm('¿Eliminar esta reseña?')">
+                    {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar</button>
+                </form>
+            </div>
+            {% empty %}<p class="suave">No hay reseñas.</p>{% endfor %}
+        </div>
+
+        <h2>Últimas fotos</h2>
+        <div class="tarjeta">
+            {% for f in ultimas_fotos %}
+            <div class="fila-moderar">
+                <div>
+                    <a href="{% url 'detalle_foto' f.id %}"><strong>Foto de {{ f.restaurante.nombre }}</strong></a>
+                    <div class="meta">por {{ f.autor }} · {{ f.get_tipo_display }}</div>
+                </div>
+                <form method="post" action="{% url 'borrar_foto' f.id %}" onsubmit="return confirm('¿Eliminar esta foto?')">
+                    {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar</button>
+                </form>
+            </div>
+            {% empty %}<p class="suave">No hay fotos.</p>{% endfor %}
+        </div>
+
+        <h2>Últimos comentarios</h2>
+        <div class="tarjeta">
+            {% for c in ultimos_comentarios %}
+            <div class="fila-moderar">
+                <div>
+                    <strong>{{ c.autor }}</strong>: {{ c.texto|truncatechars:80 }}
+                    <div class="meta">{{ c.fecha|date:"d/m/Y H:i" }}</div>
+                </div>
+                <form method="post" action="{% url 'borrar_comentario' c.id %}" onsubmit="return confirm('¿Eliminar este comentario?')">
+                    {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar</button>
+                </form>
+            </div>
+            {% empty %}<p class="suave">No hay comentarios.</p>{% endfor %}
+        </div>
+    </div>
+
+    <aside>
+        <h2>Más activos</h2>
+        <div class="tarjeta">
+            {% for r in mas_activos %}
+            <p><a href="{% url 'detalle_restaurante' r.id %}">{{ r.nombre }}</a> <span class="meta">· {{ r.ciudad.nombre }} · {{ r.n }} publicaciones</span></p>
+            {% empty %}<p class="suave">Todavía no hay actividad.</p>{% endfor %}
+        </div>
+
+        <h2>Usuarios recientes</h2>
+        <div class="tarjeta">
+            {% for p in ultimos_usuarios %}
+            <p><a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a> <span class="meta">{% if p.ciudad %}· {{ p.ciudad.nombre }}{% endif %}</span></p>
+            {% endfor %}
+        </div>
+
+        <p><a class="boton boton-secundario" href="/admin/">Panel de Django (datos en bruto)</a></p>
+    </aside>
+
+</div>
+
+{% endblock %}

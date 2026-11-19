@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  #para escribir los números con separador de miles (62.962)
     'appRestaurantes', #añadimos nuestra app
 ]
 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block titulo %}Restaurantes{% endblock %}
 
@@ -9,12 +10,12 @@
 
 {% include 'filtros.html' with con_buscador=True %}
 
-<p class="meta">{{ restaurantes|length }} restaurante{{ restaurantes|length|pluralize }}</p>
+<p class="meta">{{ page_obj.paginator.count|intcomma }} restaurante{{ page_obj.paginator.count|pluralize }}</p>
 
 <!-- tarjetas lado a lado (foto + datos), la misma tarjeta que usa el inicio -->
 <div class="rejilla-resto" style="margin-top:12px">
 
-    {% for r in restaurantes %}
+    {% for r in page_obj %}
     {% include 'tarjeta_restaurante.html' %}
 
     {% empty %}
@@ -22,6 +23,19 @@
     {% endfor %}
 
 </div>
+
+<!-- paginación: anterior / siguiente conservando la búsqueda y los filtros -->
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="paginacion">
+    {% if page_obj.has_previous %}
+    <a class="boton boton-secundario" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">← Anterior</a>
+    {% endif %}
+    <span class="meta">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a class="boton boton-secundario" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente →</a>
+    {% endif %}
+</nav>
+{% endif %}
 
 <p class="volver"><a href="{% url 'index' %}">← Volver al inicio</a></p>
 

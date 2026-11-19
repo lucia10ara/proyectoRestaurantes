@@ -15,13 +15,12 @@
 
 <p class="meta">{{ fotos|length }} foto{{ fotos|length|pluralize }}</p>
 
-<!-- fotos apaisadas con el nombre del restaurante y los datos debajo -->
-<div class="tira-fotos grande">
+<!-- rejilla de fotos cuadradas como el explorar de instagram; al pasar el ratón sale el restaurante -->
+<div class="rejilla-explorar">
     {% for foto in fotos %}
-    <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
-        <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
-        <span>{{ foto.restaurante.nombre }}</span>
-        <small class="meta">{{ foto.restaurante.ciudad.nombre }} · {{ foto.get_tipo_display }} · ♥ {{ foto.num_likes }}</small>
+    <a class="celda" href="{% url 'detalle_foto' foto.id %}">
+        <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}" loading="lazy">
+        <span class="capa">{{ foto.restaurante.nombre }}<br><small>{{ foto.restaurante.ciudad.nombre }} · ♥ {{ foto.num_likes }}</small></span>
     </a>
     {% empty %}
     <p>No hay fotos con esos filtros.</p>

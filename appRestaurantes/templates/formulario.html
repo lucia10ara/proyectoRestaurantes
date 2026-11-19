@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{# formulario genérico: lo usan escribir reseña, subir foto y editar restaurante #}
+{% block contenido %}
+
+<div class="caja-auth tarjeta" style="max-width:560px">
+    <h1>{{ titulo }}</h1>
+
+    <form method="post" {% if multipart %}enctype="multipart/form-data"{% endif %}>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {% for campo in form %}
+        <div class="campo">
+            <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+            {{ campo }}
+            {% if campo.help_text %}<small class="meta">{{ campo.help_text|safe }}</small>{% endif %}
+            {% if campo.errors %}<ul class="errores">{% for e in campo.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        {% endfor %}
+
+        <button class="boton" type="submit">{{ boton }}</button>
+        <a class="boton boton-secundario" href="{% url volver_url volver_pk %}">Cancelar</a>
+    </form>
+</div>
+
+{% endblock %}

@@ -4,7 +4,15 @@
     <input class="buscador" type="search" name="q" value="{{ q }}" placeholder="🔍 Buscar por nombre o tipo de cocina…">
     {% endif %}
 
-    <select name="ciudad">
+    <!-- primero la comunidad; al elegirla se rellena el desplegable de ciudades (static/js/ciudades.js) -->
+    <select name="comunidad" id="filtro-comunidad" data-ciudades="filtro-ciudad" data-url="{% url 'ciudades_comunidad' %}">
+        <option value="">Todas las comunidades</option>
+        {% for c in comunidades %}
+        <option value="{{ c }}" {% if filtros.comunidad == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="ciudad" id="filtro-ciudad">
         <option value="">Todas las ciudades</option>
         {% for c in ciudades %}
         <option value="{{ c.id }}" {% if filtros.ciudad == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
@@ -41,3 +49,5 @@
     <button class="boton" type="submit">Filtrar</button>
     {% if filtros %}<a class="meta" href="?ciudad=">Quitar filtros</a>{% endif %}
 </form>
+{% load static %}
+<script src="{% static 'js/ciudades.js' %}"></script>

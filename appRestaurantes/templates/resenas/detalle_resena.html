@@ -22,6 +22,16 @@
 
     <p style="margin-top:14px">{{ resena.texto }}</p>
 
+    <!-- editar: su autora o la administradora; eliminar igual -->
+    {% if user.is_staff or resena.autor.usuario_id == user.id %}
+    <div class="acciones">
+        <a class="boton boton-secundario" href="{% url 'editar_resena' resena.id %}">✎ Editar</a>
+        <form method="post" action="{% url 'borrar_resena' resena.id %}" onsubmit="return confirm('¿Eliminar esta reseña?')">
+            {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar</button>
+        </form>
+    </div>
+    {% endif %}
+
 </div>
 
 
@@ -47,6 +57,9 @@
 <div class="tarjeta">
     {% for c in resena.comentarios.all %}
     <div class="comentario">
+        {% if user.is_staff or c.autor.usuario_id == user.id %}
+        <form method="post" action="{% url 'borrar_comentario' c.id %}">{% csrf_token %}<button class="boton-peligro" type="submit">✕</button></form>
+        {% endif %}
         <strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}
         <div class="meta">{{ c.fecha|date:"d/m/Y H:i" }}</div>
     </div>
@@ -54,6 +67,14 @@
     {% empty %}
     <p class="suave">Todavía no hay comentarios.</p>
     {% endfor %}
+
+    {% if user.is_authenticated %}
+    <form class="form-comentario" method="post" action="{% url 'comentar' 'resena' resena.id %}">
+        {% csrf_token %}
+        <input type="text" name="texto" maxlength="300" placeholder="Escribe un comentario…" required>
+        <button class="boton" type="submit">Comentar</button>
+    </form>
+    {% endif %}
 </div>
 
 <p class="volver"><a href="{% url 'lista_resenas' %}">← Volver al listado de reseñas</a></p>

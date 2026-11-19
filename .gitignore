@@ -11,3 +11,7 @@ env/
 .DS_Store
 staticfiles/
 media/
+
+# progreso de las cargas de datos (se genera solo)
+carga_progreso.json
+portadas_progreso.json

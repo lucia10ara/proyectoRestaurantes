@@ -1,113 +1,108 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block titulo %}Inicio - Restaurantes de España{% endblock %}
 
 {% block contenido %}
 
-<!-- portada: presentación y cifras -->
-<section class="portada">
-    <div>
-        <h1>Restaurantes de España</h1>
-        <p>Descubre dónde comer, lee las opiniones de otros usuarios, puntúa de 1 a 5 estrellas y comparte tus fotos de la comida, del local o con amigos.</p>
-        <p>
-            <a class="boton" href="{% url 'lista_restaurantes' %}">Ver restaurantes</a>
-            <a class="boton boton-secundario" href="{% url 'explorar' %}">Explorar fotos</a>        </p>
-    </div>
-    <div class="cifras">
-        <div><strong>{{ total_restaurantes }}</strong><span>restaurantes</span></div>
-        <div><strong>{{ total_resenas }}</strong><span>reseñas</span></div>
-        <div><strong>{{ total_fotos }}</strong><span>fotos</span></div>
-    </div>
-</section>
+<div class="feed-layout">
 
-<!-- feed personal: fotos de la gente a la que sigo (los amigos son los que me siguen de vuelta) -->
-{% if user.is_authenticated %}
-<h2>Lo último de tu gente</h2>
-{% if feed %}
-<div class="tira-fotos grande">
-    {% for foto in feed %}
-    <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
-        <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
-        <span>{{ foto.restaurante.nombre }}</span>
-        <small class="meta">de {{ foto.autor }}{% if foto.es_amigo %} <b class="amigo">amigo</b>{% endif %} · ♥ {{ foto.num_likes }}</small>
-        {% if foto.pie %}<small>{{ foto.pie|truncatechars:70 }}</small>{% endif %}
-    </a>
-    {% endfor %}
-</div>
-{% else %}
-<div class="tarjeta">
-    <p>Todavía no ves publicaciones. Empieza a seguir a otros usuarios desde su perfil y aparecerán aquí.</p>
-    <a class="boton" href="{% url 'lista_perfiles' %}">Buscar gente</a>
-</div>
-{% endif %}
-{% else %}
-<div class="tarjeta" style="margin-top:20px">
-    <h3>Tu feed, solo con la gente que te importa</h3>
-    <p class="suave">Inicia sesión para ver las publicaciones de tus amigos y de los usuarios a los que sigues.</p>
-    <a class="boton" href="{% url 'login' %}">Iniciar sesión</a>
-    <a class="boton boton-secundario" href="{% url 'registro' %}">Crear cuenta</a>
-</div>
-{% endif %}
+    <!-- ========== FEED (columna central) ========== -->
+    <section class="feed">
 
-<!-- los mejor valorados, en tarjetas de dos en dos (foto a un lado, datos al otro) -->
-<h2>Mejor valorados</h2>
-<div class="rejilla-resto">
-    {% for r in destacados %}
-    {% include 'tarjeta_restaurante.html' %}
-    {% empty %}
-    <p>Todavía no hay restaurantes.</p>
-    {% endfor %}
-</div>
-<p><a href="{% url 'lista_restaurantes' %}">Ver todos los restaurantes →</a></p>
-
-<div class="dos-columnas">
-
-    <!-- últimas fotos: tira de miniaturas con el nombre del sitio debajo -->
-    <div>
-        <h2>Últimas fotos</h2>
-        <div class="tira-fotos">
-            {% for foto in ultimas_fotos %}
-            <a class="mini-foto" href="{% url 'detalle_foto' foto.id %}">
-                <img src="{{ foto.imagen_src }}" alt="{{ foto.pie|default:'Foto' }}">
-                <span>{{ foto.restaurante.nombre }}</span>
-                <small class="meta">♥ {{ foto.num_likes }} · {{ foto.get_tipo_display }}</small>
-            </a>
-            {% empty %}
-            <p>Todavía no hay fotos.</p>
-            {% endfor %}
+        {% if user.is_authenticated %}
+        <!-- caja para publicar, como "¿qué estás pensando?" -->
+        <div class="componer tarjeta">
+            {% if mi_perfil.imagen_src %}<img class="avatar" src="{{ mi_perfil.imagen_src }}" alt="">
+            {% else %}<div class="avatar">{{ user.username|first|upper }}</div>{% endif %}
+            <a class="falso-input" href="{% url 'publicar' %}">¿Dónde has comido hoy, {{ user.username }}?</a>
+            <a class="boton boton-peque" href="{% url 'publicar' %}">Publicar</a>
         </div>
-    </div>
 
-    <!-- columna lateral: últimas reseñas y usuarios -->
-    <aside>
-        <h2>Últimas reseñas</h2>
-        <div class="tarjeta">
-            {% for resena in ultimas_resenas %}
-            <div class="comentario">
-                <a href="{% url 'detalle_resena' resena.id %}"><strong>{{ resena.titulo }}</strong></a><br>
-                {% include 'estrellas.html' with n=resena.puntuacion %}
-                <div class="meta">{{ resena.autor }} en {{ resena.restaurante.nombre }}</div>
+        <!-- pestañas: lo de mi gente / lo de todos -->
+        <div class="tabs-feed">
+            <a class="{% if modo == 'siguiendo' %}activo{% endif %}" href="{% url 'index' %}">Siguiendo</a>
+            <a class="{% if modo == 'descubrir' %}activo{% endif %}" href="{% url 'index' %}?vista=descubrir">Descubrir</a>
+        </div>
+        {% if modo == 'descubrir' and not sigo_a_alguien %}
+        <div class="aviso">Todavía no sigues a nadie. Aquí tienes lo último de todos; sigue a gente desde la columna de la derecha o en <a href="{% url 'lista_perfiles' %}">Gente</a> y tu feed se llenará con lo suyo.</div>
+        {% endif %}
+
+        {% else %}
+        <!-- bienvenida para quien no ha entrado -->
+        <section class="bienvenida">
+            <h1>Descubre dónde comer, <br>con la gente que sabe.</h1>
+            <p>Comparte tus fotos, puntúa de 1 a 5 estrellas y mira qué recomiendan tus amigos entre {{ total_restaurantes|intcomma }} restaurantes de toda España.</p>
+            <p>
+                <a class="boton" href="{% url 'registro' %}">Crear cuenta</a>
+                <a class="boton boton-secundario" href="{% url 'login' %}">Iniciar sesión</a>
+            </p>
+            <div class="cifras">
+                <div><strong>{{ total_restaurantes|intcomma }}</strong><span>restaurantes</span></div>
+                <div><strong>{{ total_resenas }}</strong><span>reseñas</span></div>
+                <div><strong>{{ total_fotos }}</strong><span>fotos</span></div>
             </div>
+        </section>
+        <h2 class="titulo-feed">Lo último</h2>
+        {% endif %}
+
+        {% for p in publicaciones %}
+        {% include 'post.html' with next=request.get_full_path %}
+        {% empty %}
+        <div class="tarjeta vacio">
+            <p><strong>Aquí no hay nada todavía.</strong></p>
+            <p class="suave">Sé la primera persona en publicar una reseña o una foto.</p>
+            <a class="boton" href="{% url 'publicar' %}">Publicar</a>
+        </div>
+        {% endfor %}
+    </section>
+
+    <!-- ========== COLUMNA DERECHA ========== -->
+    <aside class="riel">
+
+        <div class="tarjeta">
+            <h3>A quién seguir</h3>
+            {% for p in sugeridos %}
+            <div class="fila sugerido">
+                <a href="{% url 'detalle_perfil' p.id %}">
+                    {% if p.imagen_src %}<img class="avatar pequeno" src="{{ p.imagen_src }}" alt="">
+                    {% else %}<div class="avatar pequeno">{{ p.usuario.username|first|upper }}</div>{% endif %}
+                </a>
+                <div class="quien">
+                    <a href="{% url 'detalle_perfil' p.id %}"><strong>{{ p }}</strong></a>
+                    <div class="meta">{% if p.ciudad %}{{ p.ciudad.nombre }}{% else %}Nuevo por aquí{% endif %}</div>
+                </div>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'seguir' p.id %}" style="margin-left:auto">
+                    {% csrf_token %}<button class="boton boton-peque" type="submit">Seguir</button>
+                </form>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="suave">Ya sigues a todo el mundo 🎉</p>
+            {% endfor %}
+            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_perfiles' %}">Ver toda la gente →</a></p>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Mejor valorados</h3>
+            {% for r in destacados %}
+            <a class="fila mini-resto" href="{% url 'detalle_restaurante' r.id %}">
+                <img class="mini-resto-foto" src="{{ r.imagen_src }}" alt="" loading="lazy"
+                     onerror="this.onerror=null;this.src='{{ r.imagen_generica }}'">
+                <div class="quien">
+                    <strong>{{ r.nombre }}</strong>
+                    <div class="meta">{{ r.tipo_cocina }} · {{ r.ciudad.nombre }}</div>
+                    <div class="meta"><span class="estrellas">★</span> {{ r.media|floatformat:1 }} ({{ r.num_resenas }})</div>
+                </div>
+            </a>
             {% empty %}
             <p class="suave">Todavía no hay reseñas.</p>
             {% endfor %}
+            <p class="meta" style="margin:10px 0 0"><a href="{% url 'lista_restaurantes' %}">Ver todos los restaurantes →</a></p>
         </div>
 
-        <h2>Usuarios</h2>
-        <div class="tarjeta">
-            {% for p in perfiles %}
-            <div class="fila" style="margin-bottom:10px">
-                {% if p.imagen_src %}
-                <img class="avatar pequeno" src="{{ p.imagen_src }}" alt="{{ p }}">
-                {% else %}
-                <div class="avatar pequeno">{{ p.usuario.username|first|upper }}</div>
-                {% endif %}
-                <a href="{% url 'detalle_perfil' p.id %}">{{ p }}</a>
-            </div>
-            {% endfor %}
-        </div>
     </aside>
-
 </div>
 
 {% endblock %}

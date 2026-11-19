@@ -15,11 +15,31 @@
         <p>{{ foto.pie }}</p>
         {% endif %}
 
+        <!-- acciones: me gusta (cualquier usuario con sesión) y eliminar (el autor o la administradora) -->
+        <div class="acciones">
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'like_foto' foto.id %}">
+                {% csrf_token %}
+                <button class="boton-like {% if me_gusta %}activo{% endif %}" type="submit">{% if me_gusta %}♥ Te gusta{% else %}♡ Me gusta{% endif %} · {{ foto.likes.count }}</button>
+            </form>
+            {% else %}
+            <a class="boton boton-secundario" href="{% url 'login' %}?next={{ request.path }}">♡ Inicia sesión para dar me gusta</a>
+            {% endif %}
+            {% if user.is_staff or foto.autor.usuario_id == user.id %}
+            <form method="post" action="{% url 'borrar_foto' foto.id %}" onsubmit="return confirm('¿Eliminar esta foto?')">
+                {% csrf_token %}<button class="boton-peligro" type="submit">Eliminar foto</button>
+            </form>
+            {% endif %}
+        </div>
+
         <h2>Comentarios</h2>
 
         <div class="tarjeta">
             {% for c in foto.comentarios.all %}
             <div class="comentario">
+                {% if user.is_staff or c.autor.usuario_id == user.id %}
+                <form method="post" action="{% url 'borrar_comentario' c.id %}">{% csrf_token %}<button class="boton-peligro" type="submit">✕</button></form>
+                {% endif %}
                 <strong><a href="{% url 'detalle_perfil' c.autor.id %}">{{ c.autor }}</a></strong>: {{ c.texto }}
                 <div class="meta">{{ c.fecha|date:"d/m/Y H:i" }}</div>
             </div>
@@ -27,6 +47,14 @@
             {% empty %}
             <p class="suave">Todavía no hay comentarios.</p>
             {% endfor %}
+
+            {% if user.is_authenticated %}
+            <form class="form-comentario" method="post" action="{% url 'comentar' 'foto' foto.id %}">
+                {% csrf_token %}
+                <input type="text" name="texto" maxlength="300" placeholder="Escribe un comentario…" required>
+                <button class="boton" type="submit">Comentar</button>
+            </form>
+            {% endif %}
         </div>
     </div>
 
