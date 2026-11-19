@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
@@ -141,6 +142,10 @@ class Restaurante(models.Model):
             return self.foto.url
         if self.foto_url:
             return self.foto_url
+        if hasattr(self, 'foto_top_img'):  #la lista ya la trae calculada (con_foto_destacada): evita una consulta por restaurante
+            if self.foto_top_img:
+                return default_storage.url(self.foto_top_img)
+            return self.foto_top_url or None
         mejor = self.fotos.annotate(n=models.Count('likes')).order_by('-n', '-id').first()
         return mejor.imagen_src if mejor else None
 
@@ -151,6 +156,14 @@ class Restaurante(models.Model):
     @property
     def imagen_src(self):  #la que usan las tarjetas: foto real si hay, y si no la ilustración
         return self.imagen_real or self.imagen_generica
+
+
+def con_foto_destacada(qs):
+    """Añade a cada restaurante de la lista su foto de usuario más votada, en la misma consulta
+    (si no, pintar N tarjetas hace N consultas extra). Lo usa Restaurante.imagen_real."""
+    mejor = Foto.objects.filter(restaurante=models.OuterRef('pk')).annotate(n=models.Count('likes')).order_by('-n', '-id')
+    return qs.annotate(foto_top_img=models.Subquery(mejor.values('imagen')[:1]),
+                       foto_top_url=models.Subquery(mejor.values('url')[:1]))
 
 
 #categoría de ilustración según el tipo de cocina (se busca la palabra clave, sin tildes ni mayúsculas)

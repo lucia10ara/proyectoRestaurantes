@@ -12,7 +12,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from .filtros import filtrar, contexto_filtros
 from .forms import RegistroForm, VisitaForm
-from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion, Historia
+from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion, Historia, con_foto_destacada
 from .notificaciones import notificar
 
 # Create your views here.
@@ -120,7 +120,7 @@ def index(request):
 
     #columna derecha: gente a la que seguir y restaurantes mejor valorados (solo los que ya tienen reseñas)
     sugeridos = Perfil.objects.select_related('usuario', 'ciudad').exclude(id__in=ids_siguiendo).order_by('?')[:5]
-    destacados = (Restaurante.objects.filter(resenas__isnull=False).select_related('ciudad')
+    destacados = (con_foto_destacada(Restaurante.objects.filter(resenas__isnull=False)).select_related('ciudad')
                   .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
                   .order_by('-media', '-num_resenas')[:4])
 
@@ -191,7 +191,7 @@ def explorar(request):
 # Restaurantes ---------------
 def lista_restaurantes(request):
     yo = perfil_actual(request)
-    restaurantes = Restaurante.objects.select_related('ciudad')
+    restaurantes = con_foto_destacada(Restaurante.objects.select_related('ciudad'))
 
     q = request.GET.get('q', '').strip()
 

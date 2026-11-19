@@ -5,7 +5,7 @@ from collections import Counter
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import Round
 
-from .models import Resena, Restaurante
+from .models import Resena, Restaurante, con_foto_destacada
 
 #una joya oculta: muy bien valorada pero poco conocida (varias reseñas, no una sola)
 JOYA_MIN_RESENAS, JOYA_MAX_RESENAS, JOYA_MIN_MEDIA = 2, 10, 4.5
@@ -15,7 +15,7 @@ NOTA_MINIMA_AFINES = 3  #para los de la misma cocina que le gusta al usuario
 
 def con_notas(qs):
     """Añade lo que necesita la tarjeta de restaurante: media, número de reseñas y estrellas redondeadas."""
-    return (qs.select_related('ciudad')
+    return (con_foto_destacada(qs).select_related('ciudad')
             .annotate(media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True))
             .annotate(estrellas=Round('media')))
 

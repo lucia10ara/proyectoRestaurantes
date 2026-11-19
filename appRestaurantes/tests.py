@@ -873,3 +873,78 @@ class DescubreTests(Base):
         self.assertEqual(self.client.get('/descubre/ruleta/').context['filtros'], {'ciudad': str(self.ciudad.pk)})
         for malo in ({'girar': 1, 'ciudad': 'abc'}, {'girar': 1, 'ciudad': self.ciudad.pk, 'excluir': 'x'}, {'girar': 1, 'comunidad': 'Nada'}):
             self.assertEqual(self.client.get('/descubre/ruleta/', malo).status_code, 200, malo)
+
+
+class RendimientoTests(Base):
+    """Bloque 8: ninguna página debe hacer más consultas a la base de datos cuanto más contenido tiene (problema N+1)."""
+
+    def poblar(self, n):
+        """Añade n restaurantes con reseña, foto, visita, colección, aviso, plan e historia, todo ligado a ana."""
+        ana, bea = self.ana.perfil, self.bea.perfil
+        ana.siguiendo.add(bea); bea.siguiendo.add(ana)
+        col, _ = Coleccion.objects.get_or_create(perfil=ana, nombre='Favoritos')
+        for i in range(n):
+            r = Restaurante.objects.create(ciudad=self.ciudad, nombre=f'R{Restaurante.objects.count()}', tipo_cocina='Tapas',
+                                           direccion=f'D{Restaurante.objects.count()}', latitud=43.2, longitud=-2.9)
+            Resena.objects.create(restaurante=r, autor=bea, puntuacion=5, titulo='t', texto='x')
+            Foto.objects.create(restaurante=r, autor=bea, url='https://e.com/a.jpg')
+            Visita.objects.create(perfil=ana, restaurante=r, fecha=date.today() - timedelta(days=i))
+            ElementoColeccion.objects.create(coleccion=col, restaurante=r)
+            Notificacion.objects.create(destinatario=ana, actor=bea, tipo='seguidor', texto='x')
+            plan = Plan.objects.create(creador=bea, restaurante=r, cuando=timezone.now() + timedelta(days=1 + i))
+            Invitacion.objects.create(plan=plan, perfil=ana)
+            Historia.objects.create(autor=bea, restaurante=r, url='https://e.com/h.jpg')
+        return col
+
+    def consultas(self, url, params=None):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as c:
+            r = self.client.get(url, params or {})
+        self.assertEqual(r.status_code, 200, url)
+        return len(c)
+
+    def test_las_consultas_no_crecen_con_el_contenido(self):
+        self.entrar(self.ana)
+        col = self.poblar(3)
+        zona = {'sur': 43, 'norte': 44, 'oeste': -3.5, 'este': -2.5}
+        paginas = [('/', None), ('/restaurantes/', None), ('/explorar/?ciudad=', None), ('/mapa/datos/', zona),
+                   (f'/colecciones/{col.pk}/', None), ('/diario/', None), ('/diario/pasaporte/', None), ('/avisos/', None),
+                   ('/planes/', None), ('/descubre/para-ti/', None), ('/descubre/novedades/', None),
+                   (f'/restaurantes/{Restaurante.objects.first().pk}/', None)]
+        pocas = {u: self.consultas(u, p) for u, p in paginas}
+        self.poblar(12)
+        for url, params in paginas:
+            muchas = self.consultas(url, params)
+            self.assertLessEqual(muchas, pocas[url] + 2, f'{url}: {pocas[url]} consultas con 3 elementos y {muchas} con 15')
+
+
+class FotosTests(Base):
+    """Bloque 8: portada de las tarjetas y tamaño de las imágenes subidas."""
+
+    def test_la_tarjeta_usa_la_foto_mas_votada(self):
+        pocas = Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://e.com/pocas.jpg')
+        muchas = Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://e.com/muchas.jpg')
+        muchas.likes.add(self.ana.perfil, self.bea.perfil)
+        pocas.likes.add(self.ana.perfil)
+        r = self.client.get('/restaurantes/')
+        self.assertEqual(r.context['page_obj'][0].imagen_src, 'https://e.com/muchas.jpg')
+        self.assertEqual(Restaurante.objects.get(pk=self.resto.pk).imagen_src, 'https://e.com/muchas.jpg')  #camino sin precalcular, igual
+
+    def test_la_portada_de_la_administradora_manda_y_sin_fotos_hay_ilustracion(self):
+        self.assertIn('img/cocinas/', self.client.get('/restaurantes/').context['page_obj'][0].imagen_src)
+        Restaurante.objects.filter(pk=self.resto.pk).update(foto_url='https://e.com/portada.jpg')
+        Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://e.com/usuario.jpg')
+        self.assertEqual(self.client.get('/restaurantes/').context['page_obj'][0].imagen_src, 'https://e.com/portada.jpg')
+
+    def test_imagen_demasiado_grande_rechazada(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .forms import FotoForm, MAX_MB_HISTORIA
+        import io
+        from PIL import Image
+        buf = io.BytesIO()
+        Image.new('RGB', (2, 2)).save(buf, 'PNG')  #un PNG válido, al que se le añade relleno hasta pasar el límite
+        grande = SimpleUploadedFile('a.png', buf.getvalue() + b'0' * (MAX_MB_HISTORIA * 1024 * 1024), content_type='image/png')
+        form = FotoForm({'tipo': 'comida'}, {'imagen': grande}, restaurante=self.resto, autor=self.ana.perfil)
+        self.assertFalse(form.is_valid())
+        self.assertIn('pesa demasiado', str(form.errors))

@@ -9,7 +9,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
 from .forms import ColeccionForm
-from .models import Coleccion, ElementoColeccion, Perfil, Restaurante, Resena
+from .models import Coleccion, ElementoColeccion, Perfil, Restaurante, Resena, con_foto_destacada
 from .views import perfil_actual
 from .views_social import perfil_o_403, volver
 
@@ -77,11 +77,13 @@ def borrar_coleccion(request, pk):
 def detalle_coleccion(request, pk):
     coleccion = coleccion_visible(request, pk)
     yo = perfil_actual(request)
-    elementos = list(coleccion.elementos.select_related('restaurante__ciudad'))
-    notas = {n['restaurante_id']: n for n in Resena.objects.filter(restaurante_id__in=[e.restaurante_id for e in elementos])
+    elementos = list(coleccion.elementos.all())
+    ids = [e.restaurante_id for e in elementos]
+    restaurantes = {r.id: r for r in con_foto_destacada(Restaurante.objects.filter(id__in=ids)).select_related('ciudad')}
+    notas = {n['restaurante_id']: n for n in Resena.objects.filter(restaurante_id__in=ids)
              .values('restaurante_id').annotate(media=Avg('puntuacion'), n=Count('id'))}
     for e in elementos:  #lo que necesita la tarjeta de restaurante: media, número de reseñas y estrellas
-        r = e.restaurante
+        r = e.restaurante = restaurantes[e.restaurante_id]
         dato = notas.get(r.id)
         r.media = dato['media'] if dato else None
         r.num_resenas = dato['n'] if dato else 0

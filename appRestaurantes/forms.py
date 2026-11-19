@@ -95,6 +95,9 @@ class ResenaForm(forms.ModelForm):
         return datos
 
 
+MAX_MB_HISTORIA = 5  #tamaño máximo de las imágenes subidas (fotos e historias)
+
+
 #Foto: archivo subido o enlace (hace falta uno de los dos, lo comprueba el clean del modelo); la reseña es opcional
 class FotoForm(forms.ModelForm):
     class Meta:
@@ -108,6 +111,12 @@ class FotoForm(forms.ModelForm):
         reseñas = Resena.objects.filter(restaurante=restaurante, autor=autor) if restaurante and autor else Resena.objects.none()
         self.fields['resena'].queryset = reseñas
         self.fields['resena'].empty_label = '— Ninguna —'
+
+    def clean_imagen(self):
+        imagen = self.cleaned_data.get('imagen')
+        if imagen and imagen.size > MAX_MB_HISTORIA * 1024 * 1024:  #el mismo límite que las historias: 5 MB
+            raise forms.ValidationError(f'La imagen pesa demasiado (máximo {MAX_MB_HISTORIA} MB).')
+        return imagen
 
 
 class ComentarioForm(forms.ModelForm):
@@ -160,9 +169,6 @@ class ColeccionForm(forms.ModelForm):
 
 
 #Historia de 24 horas: imagen (archivo o enlace) y un texto corto; el autor y el restaurante los pone la vista
-MAX_MB_HISTORIA = 5
-
-
 class HistoriaForm(forms.ModelForm):
     class Meta:
         model = Historia
