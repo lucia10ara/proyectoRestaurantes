@@ -63,6 +63,26 @@
                 <button class="boton boton-peque" type="submit">{% include 'icono.html' with n='visita' %}Confirmar visita</button>
             </form>
 
+            <!-- añadir a una de mis colecciones (o crear una nueva con ese nombre) -->
+            <form class="form-coleccion" method="post" action="{% url 'anadir_a_coleccion' restaurante.id %}">
+                {% csrf_token %}
+                <label for="id_coleccion">{% include 'icono.html' with n='guardar' %}Añadir a una colección</label>
+                {% if mis_colecciones %}
+                <select id="id_coleccion" name="coleccion">
+                    <option value="">Elige una…</option>
+                    {% for c in mis_colecciones %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+                </select>
+                <span class="meta">o</span>
+                {% endif %}
+                <input type="text" name="nombre_nueva" maxlength="80" placeholder="Nombre de una nueva" aria-label="Nombre de una colección nueva">
+                <button class="boton boton-peque" type="submit">Añadir</button>
+            </form>
+            {% if en_colecciones %}
+            <div class="meta">Está en tus colecciones:
+                {% for c in en_colecciones %}<a href="{% url 'detalle_coleccion' c.id %}">{{ c.nombre }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+            </div>
+            {% endif %}
+
             {% if mis_visitas %}
             <div class="meta mis-visitas">Tus visitas:
                 {% for v in mis_visitas %}

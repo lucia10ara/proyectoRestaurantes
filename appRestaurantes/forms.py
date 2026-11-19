@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.urls import reverse
 
-from .models import Ciudad, Perfil, Resena, Foto, Comentario, Restaurante
+from .models import Ciudad, Perfil, Resena, Foto, Comentario, Restaurante, Coleccion
 
 
 #Formulario de registro: el de Django (usuario + contraseña dos veces) más la ciudad y la biografía, que van en el Perfil
@@ -136,6 +136,26 @@ class RestauranteForm(forms.ModelForm):
         if lat is not None and not (-90 <= lat <= 90 and -180 <= lon <= 180):
             raise forms.ValidationError('Esas coordenadas no son válidas.')
         return datos
+
+
+#Colección: el dueño lo pone la vista. El nombre no se puede repetir entre las colecciones del mismo usuario
+class ColeccionForm(forms.ModelForm):
+    class Meta:
+        model = Coleccion
+        fields = ('nombre', 'descripcion', 'publica')
+        labels = {'nombre': 'Nombre', 'descripcion': 'Descripción (opcional)'}
+        widgets = {'nombre': forms.TextInput(attrs={'placeholder': 'Para cumpleaños, cenas románticas…'})}
+
+    def __init__(self, *args, perfil=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.perfil = perfil
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data['nombre'].strip()
+        repetidas = Coleccion.objects.filter(perfil=self.perfil, nombre__iexact=nombre).exclude(pk=self.instance.pk)
+        if repetidas.exists():
+            raise forms.ValidationError('Ya tienes una colección con ese nombre.')
+        return nombre
 
 
 #Visita confirmada: el usuario dice qué día estuvo (no puede ser en el futuro)

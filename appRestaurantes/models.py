@@ -320,3 +320,42 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"{self.autor}: {self.texto[:30]}"
+
+
+class Coleccion(models.Model):
+    #lista temática de restaurantes de un usuario ("Para cumpleaños", "Cenas románticas"...). Distinta de Guardado (pendientes)
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='colecciones')
+    nombre = models.CharField(max_length=80)
+    descripcion = models.CharField(max_length=250, blank=True)
+    publica = models.BooleanField('Pública (la puede ver cualquiera)', default=True)  #si no, solo la ve su dueño
+    creada = models.DateTimeField(auto_now_add=True)
+    restaurantes = models.ManyToManyField(Restaurante, through='ElementoColeccion', related_name='colecciones')
+
+    class Meta:
+        verbose_name = "Colección"
+        verbose_name_plural = "Colecciones"
+        ordering = ['-creada']
+        constraints = [models.UniqueConstraint(fields=['perfil', 'nombre'], name='coleccion_nombre_unico')]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.perfil})"
+
+    def visible_para(self, yo, usuario=None):
+        #las públicas las ve cualquiera; las privadas, solo su dueño (y la administradora)
+        return self.publica or (yo is not None and yo.id == self.perfil_id) or bool(usuario and usuario.is_staff)
+
+
+class ElementoColeccion(models.Model):
+    coleccion = models.ForeignKey(Coleccion, on_delete=models.CASCADE, related_name='elementos')
+    restaurante = models.ForeignKey(Restaurante, on_delete=models.CASCADE, related_name='elementos_coleccion')
+    nota = models.CharField('Nota personal', max_length=200, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Restaurante de una colección"
+        verbose_name_plural = "Restaurantes de colecciones"
+        ordering = ['-fecha', '-id']
+        constraints = [models.UniqueConstraint(fields=['coleccion', 'restaurante'], name='elemento_coleccion_unico')]
+
+    def __str__(self):
+        return f"{self.restaurante} en {self.coleccion}"

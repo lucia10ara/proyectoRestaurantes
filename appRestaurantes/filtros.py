@@ -6,7 +6,7 @@ Los sí/no solo devuelven lo CONFIRMADO: si de un restaurante no sabemos si tien
 """
 from django.db.models import Q
 
-from .models import Resena, Guardado, Foto, Restaurante, MomentoComida, Alergeno
+from .models import Resena, Guardado, Foto, Restaurante, MomentoComida, Alergeno, ElementoColeccion
 
 #(nombre en la URL, campo del modelo, texto del filtro)
 BOOLEANOS = [
@@ -43,6 +43,9 @@ def ids_de_restaurantes(params, yo):
         subconsultas.append(Foto.objects.values('restaurante_id'))
     if yo and params.get('amigos'):  #lo recomienda alguien a quien sigo (le dio 4 o 5 estrellas)
         subconsultas.append(Resena.objects.filter(autor__in=yo.siguiendo.all(), puntuacion__gte=4).values('restaurante_id'))
+    if params.get('coleccion'):  #los de una colección (solo si es pública o es mía)
+        visible = Q(coleccion__publica=True) | (Q(coleccion__perfil=yo) if yo else Q())
+        subconsultas.append(ElementoColeccion.objects.filter(visible, coleccion_id=entero(params['coleccion'], 1, 10**9) or 0).values('restaurante_id'))
     if yo and params.get('guardados'):
         subconsultas.append(Guardado.objects.filter(perfil=yo).values('restaurante_id'))
     return subconsultas

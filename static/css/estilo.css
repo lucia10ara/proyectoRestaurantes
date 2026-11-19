@@ -640,6 +640,19 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .mapa-caja .marker-cluster-small, .mapa-caja .marker-cluster-medium, .mapa-caja .marker-cluster-large { background-color: rgba(210, 187, 160, .6); }
 .mapa-caja .marker-cluster-small div, .mapa-caja .marker-cluster-medium div, .mapa-caja .marker-cluster-large div { background-color: var(--azulejo); color: var(--texto-claro); font-family: var(--letra); font-weight: 700; }
 
+/* ---------- Colecciones ---------- */
+.form-coleccion { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.form-coleccion label { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: .9375rem; }
+.form-coleccion .icono { width: 18px; height: 18px; }
+.form-coleccion select, .form-coleccion input[type=text] {
+    font: inherit; font-size: .875rem; color: var(--tinta); background: var(--papel);
+    border: 1px solid var(--linea); border-radius: 999px; padding: 8px 14px; min-width: 0; max-width: 100%;
+}
+.elemento-coleccion { display: flex; flex-direction: column; gap: 8px; }
+.form-nota { display: flex; gap: 8px; flex-wrap: wrap; }
+.form-nota input { flex: 1 1 140px; font: inherit; font-size: .875rem; background: var(--blanco); border: 1px solid var(--linea); border-radius: 999px; padding: 7px 14px; min-width: 0; }
+.nota-personal { font-style: italic; margin: 0; }
+
 /* menos movimiento si el sistema lo pide: el corazón aparece y se va sin saltar */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0.01ms !important; }

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views, views_social
+from . import views, views_social, views_colecciones
 
 #index y listas de listas y detalles de cada modelo 
 
@@ -41,6 +41,16 @@ urlpatterns = [
     path('restaurantes/<int:pk>/guardar/', views_social.guardar_restaurante, name='guardar_restaurante'),
     path('restaurantes/<int:pk>/visita/', views_social.marcar_visita, name='marcar_visita'),
     path('visitas/<int:pk>/borrar/', views_social.borrar_visita, name='borrar_visita'),
+
+    #colecciones: listas temáticas de restaurantes (las privadas solo las ve su dueño)
+    path('colecciones/nueva/', views_colecciones.crear_coleccion, name='crear_coleccion'),
+    path('colecciones/<int:pk>/', views_colecciones.detalle_coleccion, name='detalle_coleccion'),
+    path('colecciones/<int:pk>/editar/', views_colecciones.editar_coleccion, name='editar_coleccion'),
+    path('colecciones/<int:pk>/borrar/', views_colecciones.borrar_coleccion, name='borrar_coleccion'),
+    path('colecciones/<int:pk>/quitar/<int:restaurante_pk>/', views_colecciones.quitar_de_coleccion, name='quitar_de_coleccion'),
+    path('colecciones/<int:pk>/nota/<int:restaurante_pk>/', views_colecciones.nota_en_coleccion, name='nota_en_coleccion'),
+    path('restaurantes/<int:pk>/coleccion/', views_colecciones.anadir_a_coleccion, name='anadir_a_coleccion'),
+    path('perfiles/<int:pk>/colecciones/', views_colecciones.colecciones_de_perfil, name='colecciones_de_perfil'),
 
     #solo administradora
     path('panel/', views_social.panel, name='panel'),

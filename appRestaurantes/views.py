@@ -353,6 +353,8 @@ def detalle_restaurante(request, pk):
         #lo mío con este restaurante: si lo tengo guardado y mis visitas confirmadas
         'guardado': bool(yo) and restaurante.guardados.filter(perfil=yo).exists(),
         'mis_visitas': list(restaurante.visitas.filter(perfil=yo)[:5]) if yo else [],
+        'mis_colecciones': list(yo.colecciones.all()) if yo else [],
+        'en_colecciones': list(yo.colecciones.filter(elementos__restaurante=restaurante)) if yo else [],
         'visita_form': VisitaForm(initial={'fecha': date.today()}),
         'hoy': date.today(),
     }
@@ -396,8 +398,10 @@ def lista_perfiles(request):
 def detalle_perfil(request, pk):
     perfil = get_object_or_404(Perfil, pk=pk)
     yo = perfil_actual(request)
+    colecciones = perfil.colecciones.all() if (yo == perfil or request.user.is_staff) else perfil.colecciones.filter(publica=True)
     context = {
         'perfil': perfil,
+        'n_colecciones': colecciones.count(),
         'es_el_mio': yo == perfil,
         'lo_sigo': bool(yo) and yo.siguiendo.filter(pk=perfil.pk).exists(),
         'me_sigue': bool(yo) and perfil.siguiendo.filter(pk=yo.pk).exists(),  #si además me sigue, somos amigos

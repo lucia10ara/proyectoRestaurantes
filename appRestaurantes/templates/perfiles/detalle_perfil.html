@@ -37,6 +37,7 @@
             <span><strong>{{ perfil.seguidores.count }}</strong> seguidores</span>
             <span><strong>{{ perfil.siguiendo.count }}</strong> seguidos</span>
             <span><strong>{{ perfil.resenas.count }}</strong> reseñas</span>
+            <a href="{% url 'colecciones_de_perfil' perfil.id %}"><strong>{{ n_colecciones }}</strong> colecciones</a>
         </div>
 
         {% if perfil.biografia %}

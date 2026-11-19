@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ coleccion.nombre }}{% endblock %}
+
+{% block contenido %}
+
+<h1>{{ coleccion.nombre }}</h1>
+<p class="subtitulo">
+    Colección de <a href="{% url 'detalle_perfil' coleccion.perfil.id %}">{{ coleccion.perfil }}</a>
+    · {{ elementos|length }} restaurante{{ elementos|length|pluralize }}
+    · <span class="etiqueta {% if coleccion.publica %}si{% endif %}">{% if coleccion.publica %}Pública{% else %}Privada: solo la ves tú{% endif %}</span>
+</p>
+{% if coleccion.descripcion %}<p>{{ coleccion.descripcion }}</p>{% endif %}
+
+<div class="acciones">
+    {% if con_ubicacion %}<a class="boton boton-secundario" href="{% url 'mapa' %}?coleccion={{ coleccion.id }}">{% include 'icono.html' with n='mapa' %}Ver en el mapa</a>{% endif %}
+    {% if es_mia %}
+    <a class="boton boton-secundario" href="{% url 'editar_coleccion' coleccion.id %}">{% include 'icono.html' with n='editar' %}Editar</a>
+    {% endif %}
+    {% if es_mia or user.is_staff %}
+    <form method="post" action="{% url 'borrar_coleccion' coleccion.id %}" onsubmit="return confirm('¿Borrar esta colección? Los restaurantes no se borran.')">
+        {% csrf_token %}<button class="boton-peligro" type="submit">Borrar colección</button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="rejilla-resto" style="margin-top:16px">
+    {% for e in elementos %}
+    <div class="elemento-coleccion">
+        {% with r=e.restaurante %}{% include 'tarjeta_restaurante.html' %}{% endwith %}
+        {% if es_mia %}
+        <form class="form-nota" method="post" action="{% url 'nota_en_coleccion' coleccion.id e.restaurante_id %}">
+            {% csrf_token %}
+            <input type="text" name="nota" value="{{ e.nota }}" maxlength="200" placeholder="Tu nota (opcional)" aria-label="Nota sobre {{ e.restaurante.nombre }}">
+            <button class="boton boton-secundario boton-peque" type="submit">Guardar nota</button>
+        </form>
+        <form method="post" action="{% url 'quitar_de_coleccion' coleccion.id e.restaurante_id %}">
+            {% csrf_token %}<button class="boton-texto" type="submit">Quitar de la colección</button>
+        </form>
+        {% elif e.nota %}
+        <p class="meta nota-personal">«{{ e.nota }}»</p>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>{% if es_mia %}Todavía no hay restaurantes. Entra en la ficha de un restaurante y pulsa «Añadir a una colección».{% else %}Esta colección todavía está vacía.{% endif %}</p>
+    {% endfor %}
+</div>
+
+<p class="volver"><a href="{% url 'colecciones_de_perfil' coleccion.perfil.id %}">← Colecciones de {{ coleccion.perfil }}</a></p>
+
+{% endblock %}

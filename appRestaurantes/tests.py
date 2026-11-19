@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida
+from .models import Ciudad, Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, MomentoComida, Coleccion, ElementoColeccion
 
 
 class Base(TestCase):
@@ -374,3 +374,98 @@ class MapaTests(Base):
         self.assertContains(self.client.get(reverse('lista_restaurantes'), {'terraza': 1}), '/mapa/?terraza=1')
         self.assertContains(self.client.get(f'/restaurantes/{self.resto.id}/'), f'/mapa/?foco={self.resto.id}')
         self.assertNotContains(self.client.get(f'/restaurantes/{self.sin_sitio.id}/'), 'Ver en el mapa')
+
+
+class ColeccionesTests(Base):
+    """Bloque 3: colecciones propias, públicas o privadas."""
+
+    def setUp(self):
+        self.publica = Coleccion.objects.create(perfil=self.ana.perfil, nombre='Cumpleaños')
+        self.privada = Coleccion.objects.create(perfil=self.ana.perfil, nombre='Secreta', publica=False)
+        ElementoColeccion.objects.create(coleccion=self.privada, restaurante=self.resto)
+
+    def test_crear_y_nombre_repetido(self):
+        self.entrar(self.bea)
+        r = self.client.post(reverse('crear_coleccion'), {'nombre': 'Cenas', 'publica': 'on'})
+        self.assertEqual(self.bea.perfil.colecciones.count(), 1)
+        self.assertRedirects(r, reverse('detalle_coleccion', args=[self.bea.perfil.colecciones.get().pk]))
+        r = self.client.post(reverse('crear_coleccion'), {'nombre': 'cenas'})  #mismo nombre sin importar mayúsculas
+        self.assertContains(r, 'Ya tienes una colección con ese nombre')
+        self.assertEqual(self.bea.perfil.colecciones.count(), 1)
+
+    def test_crear_exige_sesion(self):
+        self.assertEqual(self.client.post(reverse('crear_coleccion'), {'nombre': 'X'}).status_code, 302)
+        self.assertEqual(Coleccion.objects.filter(nombre='X').count(), 0)
+
+    def test_privada_solo_su_dueno(self):
+        url = reverse('detalle_coleccion', args=[self.privada.pk])
+        self.assertEqual(self.client.get(url).status_code, 404)  #sin sesión
+        self.entrar(self.bea)
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.get(reverse('detalle_coleccion', args=[self.publica.pk])).status_code, 200)
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.entrar(self.admin)
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_listas_no_enseñan_privadas_a_otros(self):
+        url = reverse('colecciones_de_perfil', args=[self.ana.perfil.pk])
+        self.entrar(self.bea)
+        r = self.client.get(url)
+        self.assertContains(r, 'Cumpleaños')
+        self.assertNotContains(r, 'Secreta')
+        self.assertContains(self.client.get(reverse('detalle_perfil', args=[self.ana.perfil.pk])), '<strong>1</strong> colecciones')
+        self.entrar(self.ana)
+        self.assertContains(self.client.get(url), 'Secreta')
+
+    def test_anadir_desde_la_ficha(self):
+        self.entrar(self.bea)
+        url = reverse('anadir_a_coleccion', args=[self.resto.pk])
+        self.client.post(url, {'nombre_nueva': 'Con amigos'})  #crea y añade
+        nueva = self.bea.perfil.colecciones.get(nombre='Con amigos')
+        self.assertEqual(nueva.elementos.count(), 1)
+        self.client.post(url, {'nombre_nueva': 'con AMIGOS'})  #misma colección, no se duplica
+        self.assertEqual(self.bea.perfil.colecciones.count(), 1)
+        self.assertEqual(nueva.elementos.count(), 1)
+        self.client.post(url, {'coleccion': self.publica.pk})  #la de otra persona no vale
+        self.assertEqual(self.publica.elementos.count(), 0)
+        self.client.post(url, {'coleccion': 'abc'})  #id inválido: aviso, sin error 500
+        self.assertContains(self.client.get(f'/restaurantes/{self.resto.pk}/'), 'Con amigos')
+
+    def test_solo_el_dueno_cambia_y_la_admin_borra(self):
+        self.entrar(self.bea)
+        self.assertEqual(self.client.get(reverse('editar_coleccion', args=[self.publica.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse('borrar_coleccion', args=[self.publica.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse('quitar_de_coleccion', args=[self.privada.pk, self.resto.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse('nota_en_coleccion', args=[self.privada.pk, self.resto.pk]), {'nota': 'x'}).status_code, 403)
+        self.assertEqual(self.client.get(reverse('borrar_coleccion', args=[self.publica.pk])).status_code, 405)  #solo POST
+        self.assertEqual(Coleccion.objects.count(), 2)
+        self.entrar(self.admin)
+        self.client.post(reverse('borrar_coleccion', args=[self.publica.pk]))
+        self.assertEqual(Coleccion.objects.count(), 1)
+
+    def test_nota_y_quitar(self):
+        self.entrar(self.ana)
+        self.client.post(reverse('nota_en_coleccion', args=[self.privada.pk, self.resto.pk]), {'nota': 'Pedir el pulpo'})
+        self.assertEqual(self.privada.elementos.get().nota, 'Pedir el pulpo')
+        self.client.post(reverse('quitar_de_coleccion', args=[self.privada.pk, self.resto.pk]))
+        self.assertEqual(self.privada.elementos.count(), 0)
+        self.assertTrue(Restaurante.objects.filter(pk=self.resto.pk).exists())  #el restaurante sigue existiendo
+
+    def test_filtro_del_mapa_respeta_privacidad(self):
+        self.resto.latitud, self.resto.longitud = 43.26, -2.93
+        self.resto.save()
+        zona = {'sur': 43, 'norte': 44, 'oeste': -3.5, 'este': -2.5}
+        url = reverse('mapa_datos')
+        self.assertEqual(self.client.get(url, {**zona, 'coleccion': self.privada.pk}).json()['total'], 0)
+        self.entrar(self.bea)
+        self.assertEqual(self.client.get(url, {**zona, 'coleccion': self.privada.pk}).json()['total'], 0)
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get(url, {**zona, 'coleccion': self.privada.pk}).json()['total'], 1)
+        self.assertEqual(self.client.get(url, {**zona, 'coleccion': 'x'}).json()['total'], 0)
+
+    def test_borrar_restaurante_o_usuario_limpia(self):
+        self.resto.delete()
+        self.assertEqual(ElementoColeccion.objects.count(), 0)
+        self.ana.delete()
+        self.assertEqual(Coleccion.objects.count(), 0)

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Colecciones de {{ perfil }}{% endblock %}
+
+{% block contenido %}
+
+<h1>Colecciones de {{ perfil }}</h1>
+<p class="subtitulo">Listas de restaurantes ordenadas por temas.</p>
+
+{% if es_mio %}
+<div class="acciones"><a class="boton" href="{% url 'crear_coleccion' %}">{% include 'icono.html' with n='mas' %}Nueva colección</a></div>
+{% endif %}
+
+<div class="rejilla" style="margin-top:16px">
+    {% for c in colecciones %}
+    <div class="tarjeta">
+        <h3><a href="{% url 'detalle_coleccion' c.id %}">{{ c.nombre }}</a></h3>
+        {% if c.descripcion %}<p>{{ c.descripcion }}</p>{% endif %}
+        <p class="meta">{{ c.n }} restaurante{{ c.n|pluralize }}{% if not c.publica %} · Privada{% endif %}</p>
+    </div>
+    {% empty %}
+    <p>{% if es_mio %}Todavía no tienes colecciones. Crea una, por ejemplo «Para cumpleaños».{% else %}Todavía no hay colecciones públicas.{% endif %}</p>
+    {% endfor %}
+</div>
+
+<p class="volver"><a href="{% url 'detalle_perfil' perfil.id %}">← Volver al perfil</a></p>
+
+{% endblock %}
