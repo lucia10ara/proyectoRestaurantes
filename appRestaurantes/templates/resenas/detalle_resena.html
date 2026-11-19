@@ -17,6 +17,7 @@
     <h1 style="margin-top:18px">{{ resena.titulo }}</h1>
 
     {% include 'estrellas.html' with n=resena.puntuacion grande=True %}
+    {% if resena.nota_comida %}{% include 'resenas/notas_resena.html' %}{% endif %}
 
     <p class="subtitulo">Restaurante: <a href="{% url 'detalle_restaurante' resena.restaurante.id %}">{{ resena.restaurante.nombre }}</a></p>
 

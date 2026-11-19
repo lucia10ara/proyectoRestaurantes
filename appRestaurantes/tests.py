@@ -39,7 +39,9 @@ class PaginasAntiguasTests(Base):
 
     def test_publicar_resena_y_permisos(self):
         self.entrar(self.ana)
-        r = self.client.post(reverse('crear_resena', args=[self.resto.id]), {'puntuacion': 4, 'titulo': 'Bien', 'texto': 'Rico'})
+        r = self.client.post(reverse('crear_resena', args=[self.resto.id]), {
+            'puntuacion': 4, 'nota_comida': 4, 'nota_servicio': 4, 'nota_ambiente': 4, 'nota_calidad_precio': 4,
+            'titulo': 'Bien', 'texto': 'Rico'})
         self.assertEqual(r.status_code, 302)
         resena = Resena.objects.get(titulo='Bien')
         self.assertEqual(resena.autor.usuario, self.ana)
@@ -170,3 +172,136 @@ class DatosNuevosTests(Base):
     def test_restaurante_nuevo_tiene_fecha_de_alta(self):
         r = Restaurante.objects.create(ciudad=self.ciudad, nombre='Nuevo', tipo_cocina='X', direccion='Y')
         self.assertIsNotNone(r.fecha_alta)
+
+
+RESENA_COMPLETA = {'puntuacion': 5, 'nota_comida': 5, 'nota_servicio': 4, 'nota_ambiente': 3, 'nota_calidad_precio': 4,
+                   'titulo': 'Muy bien', 'texto': 'Todo rico'}
+
+
+class ResenasPorCategoriaTests(Base):
+    """Bloque 1: notas por categoría y visita al reseñar."""
+
+    def crear(self, **extra):
+        return self.client.post(reverse('crear_resena', args=[self.resto.id]), {**RESENA_COMPLETA, **extra})
+
+    def test_nueva_sin_categorias_no_se_guarda(self):
+        self.entrar(self.ana)
+        self.client.post(reverse('crear_resena', args=[self.resto.id]), {'puntuacion': 4, 'titulo': 'x', 'texto': 'y'})
+        self.assertFalse(Resena.objects.exists())
+
+    def test_nueva_con_estuve_crea_visita(self):
+        self.entrar(self.ana)
+        self.crear(estuve='on', fecha_visita=date.today().isoformat())
+        r = Resena.objects.get()
+        self.assertEqual((r.nota_comida, r.nota_calidad_precio), (5, 4))
+        v = Visita.objects.get()
+        self.assertEqual((v.perfil.usuario, v.origen), (self.ana, 'resena'))
+
+    def test_sin_estuve_no_hay_visita(self):
+        self.entrar(self.ana)
+        self.crear()
+        self.assertEqual(Resena.objects.count(), 1)
+        self.assertEqual(Visita.objects.count(), 0)
+
+    def test_visita_futura_al_resenar_se_rechaza(self):
+        self.entrar(self.ana)
+        self.crear(estuve='on', fecha_visita=(date.today() + timedelta(days=3)).isoformat())
+        self.assertFalse(Resena.objects.exists())
+
+    def test_editar_resena_antigua_sin_categorias(self):
+        antigua = Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, puntuacion=3, titulo='Vieja', texto='t')
+        self.entrar(self.ana)
+        self.client.post(reverse('editar_resena', args=[antigua.id]), {'puntuacion': 4, 'titulo': 'Vieja', 'texto': 't'})
+        antigua.refresh_from_db()
+        self.assertEqual(antigua.puntuacion, 4)
+        self.assertIsNone(antigua.nota_comida)
+
+    def test_ficha_muestra_medias_por_categoria(self):
+        Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, **RESENA_COMPLETA)
+        Resena.objects.create(restaurante=self.resto, autor=self.bea.perfil, puntuacion=3, titulo='Antigua', texto='t')
+        html = self.client.get(reverse('detalle_restaurante', args=[self.resto.id])).content.decode()
+        self.assertIn('Calidad-precio', html)
+        self.assertIn('Según 1 reseña con notas por categoría', html)
+
+
+class GenteEnRestauranteTests(Base):
+    """Bloque 1: qué personas a las que sigo han estado, lo recomiendan, lo tienen pendiente o han publicado."""
+
+    def setUp(self):
+        self.bea.perfil.siguiendo.add(self.ana.perfil)  #bea sigue a ana
+
+    def ficha(self):
+        self.entrar(self.bea)
+        return self.client.get(reverse('detalle_restaurante', args=[self.resto.id])).context['social']
+
+    def test_sin_seguir_a_nadie(self):
+        self.entrar(self.ana)  #ana no sigue a nadie
+        social = self.client.get(reverse('detalle_restaurante', args=[self.resto.id])).context['social']
+        self.assertFalse(social['sigo_a_alguien'])
+
+    def test_estado_solo_con_visita_confirmada(self):
+        Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://example.com/a.jpg')
+        social = self.ficha()
+        self.assertEqual(social['estado'], [])  #publicar una foto no es haber estado
+        self.assertEqual(len(social['publicado']), 1)
+        Visita.objects.create(perfil=self.ana.perfil, restaurante=self.resto, fecha=date(2026, 11, 2))
+        social = self.ficha()
+        self.assertEqual(social['estado'][0]['detalle'], 'estuvo el 02/11/2026')
+
+    def test_recomienda_solo_con_4_o_5(self):
+        Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, puntuacion=3, titulo='Meh', texto='t')
+        self.assertEqual(self.ficha()['recomiendan'], [])
+        Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, puntuacion=5, titulo='Top', texto='t')
+        self.assertEqual(len(self.ficha()['recomiendan']), 1)
+
+    def test_pendiente_y_no_cuenta_gente_que_no_sigo(self):
+        Guardado.objects.create(perfil=self.ana.perfil, restaurante=self.resto)
+        Guardado.objects.create(perfil=self.admin.perfil, restaurante=self.resto)  #a esta no la sigue
+        pendiente = self.ficha()['pendiente']
+        self.assertEqual([p['perfil'].usuario.username for p in pendiente], ['ana'])
+
+
+class FiltrosAvanzadosTests(Base):
+    """Bloque 1: los filtros se combinan y lo desconocido no se da por confirmado."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.con_terraza = Restaurante.objects.create(ciudad=cls.ciudad, nombre='Con terraza', tipo_cocina='X', direccion='A',
+                                                     terraza=True, vegetariano=True, precio=1, precio_max_persona=15)
+        cls.sin_terraza = Restaurante.objects.create(ciudad=cls.ciudad, nombre='Sin terraza', tipo_cocina='X', direccion='B',
+                                                     terraza=False, precio=3, precio_max_persona=60)
+        cls.cena = MomentoComida.objects.get(clave='cena')
+        cls.con_terraza.momentos.add(cls.cena)
+
+    def nombres(self, query):
+        r = self.client.get('/restaurantes/?' + query)
+        self.assertEqual(r.status_code, 200)
+        return sorted(x.nombre for x in r.context['page_obj'])
+
+    def test_terraza_solo_confirmada(self):
+        self.assertEqual(self.nombres('terraza=1'), ['Con terraza'])  #el de terraza desconocida no sale
+
+    def test_combinados(self):
+        self.assertEqual(self.nombres('terraza=1&vegetariano=1&precio=1&momento=cena'), ['Con terraza'])
+        self.assertEqual(self.nombres('terraza=1&precio=3'), [])
+
+    def test_precio_maximo_excluye_desconocidos(self):
+        self.assertEqual(self.nombres('precio_max=20'), ['Con terraza'])
+
+    def test_amigos_guardados_y_fotos(self):
+        self.bea.perfil.siguiendo.add(self.ana.perfil)
+        Resena.objects.create(restaurante=self.sin_terraza, autor=self.ana.perfil, puntuacion=5, titulo='t', texto='t')
+        Guardado.objects.create(perfil=self.bea.perfil, restaurante=self.con_terraza)
+        Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://example.com/a.jpg')
+        self.entrar(self.bea)
+        self.assertEqual(self.nombres('amigos=1'), ['Sin terraza'])
+        self.assertEqual(self.nombres('guardados=1'), ['Con terraza'])
+        self.assertEqual(self.nombres('con_fotos=1'), ['Taberna Prueba'])
+
+    def test_valores_raros_no_rompen(self):
+        self.assertEqual(self.client.get('/restaurantes/?precio=abc&precio_max=-5&ciudad=xx&momento=nada').status_code, 200)
+        self.assertEqual(self.client.get('/explorar/?terraza=1&precio=9').status_code, 200)
+
+    def test_sin_sesion_se_ignoran_los_filtros_personales(self):
+        self.assertEqual(len(self.nombres('guardados=1')), 3)

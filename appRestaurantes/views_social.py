@@ -65,6 +65,9 @@ def crear_resena(request, pk):
         resena = form.save(commit=False)
         resena.restaurante, resena.autor = restaurante, yo  #el autor es siempre el usuario que ha entrado
         resena.save()
+        if form.cleaned_data.get('estuve'):  #visita confirmada por el propio usuario al reseñar
+            Visita.objects.get_or_create(perfil=yo, restaurante=restaurante, fecha=form.cleaned_data['fecha_visita'],
+                                         defaults={'origen': 'resena'})
         messages.success(request, 'Reseña publicada.')
         return redirect('detalle_resena', pk=resena.pk)
     return render(request, 'formulario.html', {

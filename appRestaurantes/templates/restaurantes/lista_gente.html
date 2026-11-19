@@ -1,0 +1,17 @@
+{# lista de personas con avatar, nombre y un detalle. Necesita 'lista' (perfil, detalle, amigo) y 'vacio' #}
+{% if lista %}
+<ul class="lista-gente">
+    {% for item in lista %}
+    <li>
+        <a class="fila" href="{% url 'detalle_perfil' item.perfil.id %}">
+            {% if item.perfil.imagen_src %}<img class="avatar pequeno" src="{{ item.perfil.imagen_src }}" alt="">
+            {% else %}<span class="avatar pequeno">{{ item.perfil.usuario.username|first|upper }}</span>{% endif %}
+            <span class="quien"><strong>{{ item.perfil }}</strong>{% if item.amigo %}<span class="amigo">amigo</span>{% endif %}
+                <span class="meta">{{ item.detalle }}</span></span>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="suave">{{ vacio }}</p>
+{% endif %}

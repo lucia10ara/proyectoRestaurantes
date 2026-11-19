@@ -1,0 +1,31 @@
+{# "Tu gente aquí": personas a las que sigo y su relación con el restaurante. Pestañas hechas solo con CSS (radio + :has) #}
+<section class="tarjeta gente-aqui" aria-labelledby="titulo-gente">
+    <h3 id="titulo-gente">Tu gente aquí</h3>
+
+    {% if not social.sigo_a_alguien %}
+    <p class="suave">Todavía no sigues a nadie. Cuando sigas a otras personas verás aquí quién ha estado, quién lo recomienda y quién lo tiene pendiente. <a href="{% url 'lista_perfiles' %}">Buscar gente</a></p>
+    {% else %}
+    <div class="tabs-gente">
+        <input type="radio" name="gente" id="g-estado" checked><label for="g-estado">Han estado <span>{{ social.estado|length }}</span></label>
+        <input type="radio" name="gente" id="g-recomiendan"><label for="g-recomiendan">Lo recomiendan <span>{{ social.recomiendan|length }}</span></label>
+        <input type="radio" name="gente" id="g-pendiente"><label for="g-pendiente">Lo tienen pendiente <span>{{ social.pendiente|length }}</span></label>
+        <input type="radio" name="gente" id="g-publicado"><label for="g-publicado">Han publicado <span>{{ social.publicado|length }}</span></label>
+    </div>
+
+    <div class="panel-gente" id="p-estado">
+        {% include 'restaurantes/lista_gente.html' with lista=social.estado vacio='Nadie a quien sigues ha confirmado una visita aquí.' %}
+        <p class="meta">Solo cuentan las visitas confirmadas por cada persona («He estado aquí»).</p>
+    </div>
+    <div class="panel-gente" id="p-recomiendan">
+        {% include 'restaurantes/lista_gente.html' with lista=social.recomiendan vacio='Nadie a quien sigues lo ha recomendado todavía.' %}
+        <p class="meta">Lo recomiendan quienes le han dado 4 o 5 estrellas en su reseña.</p>
+    </div>
+    <div class="panel-gente" id="p-pendiente">
+        {% include 'restaurantes/lista_gente.html' with lista=social.pendiente vacio='Nadie a quien sigues lo tiene guardado.' %}
+    </div>
+    <div class="panel-gente" id="p-publicado">
+        {% include 'restaurantes/lista_gente.html' with lista=social.publicado vacio='Nadie a quien sigues ha publicado fotos ni reseñas de aquí.' %}
+        <p class="meta">Publicar una foto o una reseña no significa haber confirmado la visita.</p>
+    </div>
+    {% endif %}
+</section>

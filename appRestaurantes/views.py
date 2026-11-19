@@ -8,8 +8,9 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
+from .filtros import filtrar, contexto_filtros
 from .forms import RegistroForm, VisitaForm
-from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno
+from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado
 
 # Create your views here.
 
@@ -29,8 +30,8 @@ def ciudades_principales(elegida=None, comunidad=None):
     if comunidad:  #con una comunidad elegida salen todas sus ciudades que tengan algún restaurante
         return ciudades.filter(comunidad=comunidad, n__gte=1)
     condicion = Q(n__gte=MIN_RESTAURANTES_CIUDAD)
-    if elegida:
-        condicion |= Q(pk=elegida)
+    if str(elegida or '').isdigit():  #la ciudad llega en la URL: si no es un número se ignora
+        condicion |= Q(pk=int(elegida))
     return ciudades.filter(condicion)
 
 
@@ -151,23 +152,15 @@ def explorar(request):
         filtros['ciudad'] = str(yo.ciudad_id)
 
     ciudad = filtros.get('ciudad')
-    alergeno = filtros.get('alergeno')
     tipo = filtros.get('tipo')
-    if filtros.get('comunidad'):
-        fotos = fotos.filter(restaurante__ciudad__comunidad=filtros['comunidad'])
-    if ciudad:
-        fotos = fotos.filter(restaurante__ciudad_id=ciudad)
-    if filtros.get('ninos'):
-        fotos = fotos.filter(restaurante__admite_ninos=True)
-    if filtros.get('perros'):
-        fotos = fotos.filter(restaurante__admite_perros=True)
-    if alergeno:
-        fotos = fotos.filter(restaurante__opciones_sin_alergenos=alergeno)
+    #filtros del restaurante de la foto (los mismos que en la lista de restaurantes, ver filtros.py)
+    fotos = filtrar(fotos, filtros, yo, prefijo='restaurante__')
     if tipo:
         fotos = fotos.filter(tipo=tipo)
 
     context = {
-        'fotos': fotos.distinct(),
+        **contexto_filtros(filtros, yo),
+        'fotos': fotos,
         'comunidades': lista_comunidades(),
         'ciudades': ciudades_principales(ciudad, filtros.get('comunidad')),
         'alergenos': Alergeno.objects.all(),
@@ -180,27 +173,21 @@ def explorar(request):
 
 # Restaurantes ---------------
 def lista_restaurantes(request):
-    #añadimos la nota media y el número de reseñas a cada restaurante
-    restaurantes = Restaurante.objects.select_related('ciudad').annotate(
-        media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True)
-    ).annotate(estrellas=Round('media'))  #estrellas = media redondeada, para pintarlas
+    yo = perfil_actual(request)
+    restaurantes = Restaurante.objects.select_related('ciudad')
 
     #buscador: busca el texto en el nombre o en el tipo de cocina (icontains no distingue mayúsculas)
     q = request.GET.get('q', '').strip()
     if q:
         restaurantes = restaurantes.filter(Q(nombre__icontains=q) | Q(tipo_cocina__icontains=q))
 
-    #filtros (llegan en la URL igual que en explorar)
-    if request.GET.get('comunidad'):
-        restaurantes = restaurantes.filter(ciudad__comunidad=request.GET['comunidad'])
-    if request.GET.get('ciudad'):
-        restaurantes = restaurantes.filter(ciudad_id=request.GET['ciudad'])
-    if request.GET.get('ninos'):
-        restaurantes = restaurantes.filter(admite_ninos=True)
-    if request.GET.get('perros'):
-        restaurantes = restaurantes.filter(admite_perros=True)
-    if request.GET.get('alergeno'):
-        restaurantes = restaurantes.filter(opciones_sin_alergenos=request.GET['alergeno'])
+    #filtros (llegan en la URL igual que en explorar): primero se filtra y después se calculan las medias
+    restaurantes = filtrar(restaurantes, request.GET, yo)
+
+    #añadimos la nota media y el número de reseñas a cada restaurante
+    restaurantes = restaurantes.annotate(
+        media=Avg('resenas__puntuacion'), num_resenas=Count('resenas', distinct=True)
+    ).annotate(estrellas=Round('media'))  #estrellas = media redondeada, para pintarlas
 
     #orden: por nota (por defecto) o por nombre
     if request.GET.get('orden') == 'nombre':
@@ -209,10 +196,11 @@ def lista_restaurantes(request):
         restaurantes = restaurantes.order_by('-media', 'nombre')
 
     #paginación: 24 por página (con decenas de miles de restaurantes no se pueden pintar todos de golpe)
-    page_obj = Paginator(restaurantes.distinct(), 24).get_page(request.GET.get('page'))
+    page_obj = Paginator(restaurantes, 24).get_page(request.GET.get('page'))
     filtros = {k: v for k, v in request.GET.items() if v and k != 'page'}
 
     context = {
+        **contexto_filtros(filtros, yo),
         'page_obj': page_obj,
         'comunidades': lista_comunidades(),
         'ciudades': ciudades_principales(request.GET.get('ciudad'), request.GET.get('comunidad')),
@@ -224,13 +212,71 @@ def lista_restaurantes(request):
     return render(request, 'restaurantes/lista_restaurantes.html', context)
 
 
+def gente_en_restaurante(yo, restaurante):
+    """Qué personas a las que sigo tienen relación con este restaurante, separado por tipo.
+    'Han estado' son SOLO visitas confirmadas; publicar o recomendar no es haber estado."""
+    sigo = list(yo.siguiendo.values_list('id', flat=True))
+    if not sigo:
+        return {'sigo_a_alguien': False}
+    amigos = set(yo.amigos.values_list('id', flat=True))
+
+    def una_por_persona(filas, perfil_de, detalle_de):
+        vistos, lista = set(), []
+        for fila in filas:
+            perfil = perfil_de(fila)
+            if perfil.id not in vistos:
+                vistos.add(perfil.id)
+                lista.append({'perfil': perfil, 'detalle': detalle_de(fila), 'amigo': perfil.id in amigos})
+        return lista
+
+    visitas = Visita.objects.filter(restaurante=restaurante, perfil_id__in=sigo).select_related('perfil__usuario').order_by('-fecha')
+    recomiendan = Resena.objects.filter(restaurante=restaurante, autor_id__in=sigo, puntuacion__gte=4).select_related('autor__usuario')
+    guardados = Guardado.objects.filter(restaurante=restaurante, perfil_id__in=sigo).select_related('perfil__usuario')
+
+    #han publicado: fotos y reseñas juntas, contando cuántas de cada una
+    publicado = {}
+    for f in Foto.objects.filter(restaurante=restaurante, autor_id__in=sigo).select_related('autor__usuario'):
+        publicado.setdefault(f.autor_id, {'perfil': f.autor, 'fotos': 0, 'resenas': 0})['fotos'] += 1
+    for r in Resena.objects.filter(restaurante=restaurante, autor_id__in=sigo).select_related('autor__usuario'):
+        publicado.setdefault(r.autor_id, {'perfil': r.autor, 'fotos': 0, 'resenas': 0})['resenas'] += 1
+
+    def texto_publicado(d):
+        partes = []
+        if d['fotos']:
+            partes.append(f"{d['fotos']} foto{'s' if d['fotos'] > 1 else ''}")
+        if d['resenas']:
+            partes.append(f"{d['resenas']} reseña{'s' if d['resenas'] > 1 else ''}")
+        return ' y '.join(partes)
+
+    return {
+        'sigo_a_alguien': True,
+        'estado': una_por_persona(visitas, lambda v: v.perfil, lambda v: f"estuvo el {v.fecha:%d/%m/%Y}"),
+        'recomiendan': una_por_persona(recomiendan, lambda r: r.autor, lambda r: f"le dio {r.puntuacion} estrellas"),
+        'pendiente': una_por_persona(guardados, lambda g: g.perfil, lambda g: "lo tiene guardado"),
+        'publicado': [{'perfil': d['perfil'], 'detalle': texto_publicado(d), 'amigo': d['perfil'].id in amigos} for d in publicado.values()],
+    }
+
+
 def detalle_restaurante(request, pk):
     restaurante = get_object_or_404(Restaurante, pk=pk)
     media = restaurante.resenas.aggregate(media=Avg('puntuacion'))['media']  #nota media del restaurante
     estrellas = round(media) if media else 0  #redondeada para pintar las estrellas
     yo = perfil_actual(request)
+
+    #medias por categoría (solo cuentan las reseñas que tienen esa nota; las antiguas no la tienen)
+    medias = restaurante.resenas.aggregate(
+        **{'media_' + campo: Avg(campo) for campo, _ in Resena.CATEGORIAS},
+        con_detalle=Count('id', filter=Q(nota_comida__isnull=False)))
+    categorias = []
+    for campo, nombre in Resena.CATEGORIAS:
+        valor = medias['media_' + campo]
+        categorias.append({'nombre': nombre, 'media': valor, 'porcentaje': round(valor / 5 * 100) if valor else 0})
+
     context = {
         'restaurante': restaurante, 'media': media, 'estrellas': estrellas,
+        'categorias': categorias if medias['con_detalle'] else [],
+        'con_detalle': medias['con_detalle'],
+        'social': gente_en_restaurante(yo, restaurante) if yo else None,
         #lo mío con este restaurante: si lo tengo guardado y mis visitas confirmadas
         'guardado': bool(yo) and restaurante.guardados.filter(perfil=yo).exists(),
         'mis_visitas': list(restaurante.visitas.filter(perfil=yo)[:5]) if yo else [],

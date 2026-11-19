@@ -292,6 +292,26 @@ a.sticker:hover { text-decoration: none; background: #E0CDB4; }
 }
 .chip input { display: none; }
 .chip:has(input:checked) { background: var(--azulejo-suave); color: var(--azulejo); border-color: #D2BBA0; font-weight: 600; }
+/* más filtros (desplegable) */
+.mas-filtros { flex-basis: 100%; border-top: 1px solid var(--linea-suave); padding-top: 8px; }
+.mas-filtros summary {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+    font-weight: 600; font-size: .9375rem; color: var(--tinta-2); padding: 6px 4px; border-radius: 8px;
+}
+.mas-filtros summary::-webkit-details-marker { display: none; }
+.mas-filtros summary::after { content: "▾"; font-size: .8rem; transition: transform 160ms var(--ease-out); }
+.mas-filtros[open] summary::after { transform: rotate(180deg); }
+.mas-filtros .contador { background: var(--azulejo); color: var(--texto-claro); font-size: .75rem; border-radius: 999px; padding: 1px 8px; }
+.grupo-filtros { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
+.campo-corto { display: inline-flex; align-items: center; gap: 6px; font-size: .9375rem; color: var(--tinta-2); }
+.campo-corto input {
+    width: 76px; font: inherit; color: var(--tinta); background: var(--papel);
+    border: 1px solid transparent; border-radius: 999px; padding: 8px 12px;
+}
+.campo-corto input:focus { outline: none; border-color: var(--azulejo); background: var(--blanco); }
+.nota-filtros { margin: 4px 0 0; max-width: 70ch; }
+.botones-filtros { display: flex; align-items: center; gap: 12px; flex-basis: 100%; }
+
 .paginacion { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 28px 0 8px; }
 .paginacion .meta { margin: 0; }
 
@@ -467,6 +487,54 @@ a.sticker:hover { text-decoration: none; background: #E0CDB4; }
 .visita-chip form { margin: 0; }
 .visita-chip .boton-texto { width: 22px; height: 22px; border-radius: 50%; font-size: 1rem; line-height: 1; }
 .visita-chip .boton-texto:hover { background: var(--blanco); color: var(--tomate); text-decoration: none; }
+
+/* ---------- Puntos fuertes: media por categoría en barras ---------- */
+.categorias { max-width: 460px; margin: 12px 0 16px; }
+.categoria { display: grid; grid-template-columns: 110px 1fr 34px; align-items: center; gap: 10px; margin: 6px 0; font-size: .9375rem; }
+.cat-nombre { color: var(--tinta-2); }
+.cat-barra { height: 8px; background: var(--linea-suave); border-radius: 999px; overflow: hidden; }
+.cat-barra span { display: block; height: 100%; background: var(--estrella); border-radius: 999px; }
+.cat-valor { text-align: right; }
+.categorias .meta { margin: 6px 0 0; }
+
+/* notas por categoría de una reseña */
+.notas-resena { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+.notas-resena div { background: var(--azulejo-suave); border-radius: 999px; padding: 3px 11px; display: flex; gap: 6px; font-size: .8125rem; }
+.notas-resena dt { color: var(--tinta-2); }
+.notas-resena dd { margin: 0; font-weight: 700; }
+.notas-resena dd span { font-weight: 400; color: var(--gris); }
+
+/* ---------- Tu gente aquí ---------- */
+.tabs-gente { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tabs-gente input { position: absolute; opacity: 0; pointer-events: none; }
+.tabs-gente label {
+    cursor: pointer; font-size: .875rem; font-weight: 600; color: var(--tinta-2);
+    background: var(--papel); border-radius: 999px; padding: 6px 12px; user-select: none;
+}
+.tabs-gente label span { color: var(--gris); font-weight: 500; margin-left: 2px; }
+.tabs-gente input:checked + label { background: var(--azulejo); color: var(--texto-claro); }
+.tabs-gente input:checked + label span { color: var(--texto-claro); opacity: .8; }
+.tabs-gente input:focus-visible + label { outline: 2px solid var(--azulejo); outline-offset: 2px; }
+.panel-gente { display: none; }
+.gente-aqui:has(#g-estado:checked) #p-estado,
+.gente-aqui:has(#g-recomiendan:checked) #p-recomiendan,
+.gente-aqui:has(#g-pendiente:checked) #p-pendiente,
+.gente-aqui:has(#g-publicado:checked) #p-publicado { display: block; }
+.lista-gente { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 12px; }
+.lista-gente a { padding: 6px 4px; border-radius: 10px; color: var(--tinta); }
+.lista-gente a:hover { background: var(--papel); text-decoration: none; }
+.lista-gente .quien { display: flex; flex-direction: column; }
+.lista-gente .quien strong { display: inline; }
+.lista-gente .amigo { align-self: flex-start; margin: 2px 0; }
+
+/* formulario de reseña: las cuatro notas de dos en dos y la casilla "Estuve aquí" junto a su texto */
+.campo-nota_comida, .campo-nota_servicio, .campo-nota_ambiente, .campo-nota_calidad_precio {
+    display: inline-block; width: calc(50% - 8px); vertical-align: top;
+}
+.campo-nota_comida, .campo-nota_ambiente { margin-right: 8px; }
+.campo-estuve { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 10px; }
+.campo-estuve label { margin: 0; font-weight: 500; }
+.campo-estuve input { width: 18px; height: 18px; accent-color: var(--azulejo); }
 
 /* ---------- Nuestra estética: logo serif, botones redondeados y tarjetas con sombra suave ---------- */
 .logo { display: block; font-family: Georgia, "Times New Roman", serif; font-weight: 700; letter-spacing: 0; }

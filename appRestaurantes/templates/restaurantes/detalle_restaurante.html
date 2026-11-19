@@ -15,6 +15,20 @@
         <h1>{{ restaurante.nombre }}</h1>
         <!-- nota media (se calcula en la vista) -->
         <p>{% include 'estrellas.html' with n=estrellas grande=True %} {% if media %}<strong>{{ media|floatformat:1 }}</strong> · {{ restaurante.resenas.count }} reseña{{ restaurante.resenas.count|pluralize }}{% else %}<span class="meta">Sin reseñas todavía</span>{% endif %}</p>
+        <!-- puntos fuertes: media de cada categoría (solo con reseñas que las tienen) -->
+        {% if categorias %}
+        <div class="categorias" aria-label="Notas por categoría">
+            {% for c in categorias %}
+            <div class="categoria">
+                <span class="cat-nombre">{{ c.nombre }}</span>
+                <span class="cat-barra"><span style="width: {{ c.porcentaje }}%"></span></span>
+                <strong class="cat-valor">{% if c.media %}{{ c.media|floatformat:1 }}{% else %}–{% endif %}</strong>
+            </div>
+            {% endfor %}
+            <p class="meta">Según {{ con_detalle }} reseña{{ con_detalle|pluralize }} con notas por categoría.</p>
+        </div>
+        {% endif %}
+
         <p class="subtitulo">{{ restaurante.tipo_cocina }} · {% if restaurante.direccion_visible %}{{ restaurante.direccion_visible }}, {% endif %}<a href="{% url 'detalle_ciudad' restaurante.ciudad.id %}">{{ restaurante.ciudad.nombre }}</a></p>
 
         {% if restaurante.descripcion %}
@@ -63,6 +77,8 @@
         </div>
         {% endif %}
 
+        {% if social %}{% include 'restaurantes/gente_restaurante.html' %}{% endif %}
+
         <h2>Reseñas</h2>
 
         {% for resena in restaurante.resenas.all %}
@@ -77,6 +93,7 @@
 
             <h3 style="margin-top:12px"><a href="{% url 'detalle_resena' resena.id %}">{{ resena.titulo }}</a></h3>
             {% include 'estrellas.html' with n=resena.puntuacion %}
+            {% if resena.nota_comida %}{% include 'resenas/notas_resena.html' %}{% endif %}
             <p>{{ resena.texto|truncatewords:30 }}</p>
             {% if user.is_staff or resena.autor.usuario_id == user.id %}
             <form method="post" action="{% url 'borrar_resena' resena.id %}" onsubmit="return confirm('¿Eliminar esta reseña?')">

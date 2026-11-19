@@ -52,16 +52,46 @@ class RegistroForm(UserCreationForm):
 
 
 #Reseña: el autor y el restaurante los pone la vista (son el usuario que ha entrado y el restaurante de la página)
+ESTRELLAS = [(5, '★★★★★  Excelente'), (4, '★★★★  Muy bueno'), (3, '★★★  Normal'), (2, '★★  Flojo'), (1, '★  Malo')]
+
+
 class ResenaForm(forms.ModelForm):
-    puntuacion = forms.TypedChoiceField(
-        label='Puntuación', coerce=int,
-        choices=[(5, '★★★★★  Excelente'), (4, '★★★★  Muy bueno'), (3, '★★★  Normal'), (2, '★★  Flojo'), (1, '★  Malo')])
+    puntuacion = forms.TypedChoiceField(label='Nota general', coerce=int, choices=ESTRELLAS)
+    #notas por categoría: obligatorias en las reseñas nuevas, opcionales al editar una antigua que no las tenía
+    nota_comida = forms.TypedChoiceField(label='Comida', coerce=int, empty_value=None, choices=[('', '—')] + ESTRELLAS)
+    nota_servicio = forms.TypedChoiceField(label='Servicio', coerce=int, empty_value=None, choices=[('', '—')] + ESTRELLAS)
+    nota_ambiente = forms.TypedChoiceField(label='Ambiente', coerce=int, empty_value=None, choices=[('', '—')] + ESTRELLAS)
+    nota_calidad_precio = forms.TypedChoiceField(label='Calidad-precio', coerce=int, empty_value=None, choices=[('', '—')] + ESTRELLAS)
     titulo = forms.CharField(max_length=100, label='Título', widget=forms.TextInput(attrs={'placeholder': 'Resume tu experiencia'}))
     texto = forms.CharField(label='Tu opinión', widget=forms.Textarea(attrs={'rows': 5, 'placeholder': '¿Qué tal la comida, el servicio, el ambiente?'}))
+    #solo al crear: si marca que estuvo, se apunta una visita confirmada en su diario
+    estuve = forms.BooleanField(label='Estuve aquí (apuntar la visita en mi diario)', required=False, initial=True)
+    fecha_visita = forms.DateField(label='Día de la visita', required=False, widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))
 
     class Meta:
         model = Resena
-        fields = ('puntuacion', 'titulo', 'texto')
+        fields = ('puntuacion', 'nota_comida', 'nota_servicio', 'nota_ambiente', 'nota_calidad_precio', 'titulo', 'texto')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        nueva = self.instance.pk is None
+        for campo, _ in Resena.CATEGORIAS:
+            self.fields[campo].required = nueva
+        if nueva:
+            self.fields['fecha_visita'].initial = date.today()
+            self.fields['fecha_visita'].widget.attrs['max'] = date.today().isoformat()
+        else:  #al editar no se crean visitas (ya están en el diario o se apuntan con el botón)
+            del self.fields['estuve']
+            del self.fields['fecha_visita']
+
+    def clean(self):
+        datos = super().clean()
+        if datos.get('estuve'):
+            fecha = datos.get('fecha_visita') or date.today()
+            if fecha > date.today():
+                self.add_error('fecha_visita', 'La visita no puede ser en el futuro.')
+            datos['fecha_visita'] = fecha
+        return datos
 
 
 #Foto: archivo subido o enlace (hace falta uno de los dos, lo comprueba el clean del modelo); la reseña es opcional
@@ -110,7 +140,7 @@ class RestauranteForm(forms.ModelForm):
 
 #Visita confirmada: el usuario dice qué día estuvo (no puede ser en el futuro)
 class VisitaForm(forms.Form):
-    fecha = forms.DateField(label='¿Qué día fuiste?', widget=forms.DateInput(attrs={'type': 'date'}))
+    fecha = forms.DateField(label='¿Qué día fuiste?', widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))
 
     def clean_fecha(self):
         fecha = self.cleaned_data['fecha']

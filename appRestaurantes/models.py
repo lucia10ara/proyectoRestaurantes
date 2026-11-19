@@ -236,6 +236,14 @@ class Resena(models.Model):
     autor = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='resenas')  #perfil que la escribe
     
     puntuacion = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])  #estrellas de 1 a 5
+
+    #notas por categoría (1 a 5). Vacías en las reseñas antiguas; el formulario las pide en las nuevas
+    nota_comida = models.PositiveSmallIntegerField('Comida', blank=True, null=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    nota_servicio = models.PositiveSmallIntegerField('Servicio', blank=True, null=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    nota_ambiente = models.PositiveSmallIntegerField('Ambiente', blank=True, null=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    nota_calidad_precio = models.PositiveSmallIntegerField('Calidad-precio', blank=True, null=True, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    CATEGORIAS = [('nota_comida', 'Comida'), ('nota_servicio', 'Servicio'), ('nota_ambiente', 'Ambiente'), ('nota_calidad_precio', 'Calidad-precio')]
+
     titulo = models.CharField(max_length=100)  #titulo de la reseña
     texto = models.TextField()  #la opinion
     fecha = models.DateField(auto_now_add=True) 
