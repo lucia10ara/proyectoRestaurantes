@@ -691,3 +691,81 @@ class HistoriasTests(Base):
         Historia.objects.filter(pk=muerta.pk).update(caduca=timezone.now() - timedelta(hours=1))
         call_command('limpiar_historias', stdout=__import__('io').StringIO())
         self.assertEqual(list(Historia.objects.values_list('pk', flat=True)), [viva.pk])
+
+
+class DiarioTests(Base):
+    """Bloque 6: diario, pasaporte y retos (solo cuentan las visitas confirmadas)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.vigo = Ciudad.objects.create(nombre='Vigo', comunidad='Galicia')
+        cls.pizzeria = Restaurante.objects.create(ciudad=cls.vigo, nombre='Pizzería', tipo_cocina='Pizzería', direccion='C 9')
+
+    def visita(self, resto, dias_atras=0, perfil=None):
+        return Visita.objects.create(perfil=perfil or self.ana.perfil, restaurante=resto, fecha=date.today() - timedelta(days=dias_atras))
+
+    def test_exigen_sesion_y_son_personales(self):
+        for url in ('/diario/', '/diario/pasaporte/', '/diario/retos/'):
+            self.assertEqual(self.client.get(url).status_code, 302, url)
+        self.visita(self.resto)
+        self.entrar(self.bea)
+        self.assertNotContains(self.client.get('/diario/'), 'Taberna Prueba')  #las visitas de ana no salen a bea
+
+    def test_diario_agrupa_por_mes_y_enlaza_resena(self):
+        self.visita(self.resto, 0)
+        self.visita(self.resto, 70)
+        Resena.objects.create(restaurante=self.resto, autor=self.ana.perfil, puntuacion=5, titulo='t', texto='x')
+        self.entrar(self.ana)
+        r = self.client.get('/diario/')
+        self.assertEqual(len(r.context['meses']), 2)
+        self.assertContains(r, 'mi reseña (5★)')
+
+    def test_borrar_visita_desde_el_diario_quita_el_sello(self):
+        v = self.visita(self.pizzeria)
+        self.entrar(self.ana)
+        self.assertContains(self.client.get('/diario/pasaporte/'), 'Vigo')
+        r = self.client.post(reverse('borrar_visita', args=[v.pk]), {'next': '/diario/'})
+        self.assertRedirects(r, '/diario/')
+        self.assertNotContains(self.client.get('/diario/pasaporte/'), 'Vigo')
+
+    def test_pasaporte_cuenta_ciudades_comunidades_y_cocinas(self):
+        self.visita(self.resto, 5)
+        self.visita(self.pizzeria, 1)
+        self.visita(self.pizzeria, 0)  #otro día al mismo sitio: no duplica sellos
+        from . import logros
+        e = logros.estadisticas(self.ana.perfil)
+        self.assertEqual((e['total_visitas'], e['n_restaurantes']), (3, 2))
+        self.assertEqual([c['ciudad'].nombre for c in e['ciudades']], ['Bilbao', 'Vigo'])
+        self.assertEqual({c['nombre'] for c in e['comunidades']}, {'País Vasco', 'Galicia'})
+        self.assertEqual([c['clave'] for c in e['cocinas']], ['tapas', 'pizza'])
+
+    def test_solo_cuentan_visitas_confirmadas(self):
+        Guardado.objects.create(perfil=self.ana.perfil, restaurante=self.resto)
+        Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://e.com/a.jpg')
+        from . import logros
+        e = logros.estadisticas(self.ana.perfil)
+        self.assertEqual((e['total_visitas'], e['n_restaurantes'], len(e['ciudades'])), (0, 0, 0))
+        self.assertFalse(any(r['hecho'] for r in logros.retos(e)))
+
+    def test_retos(self):
+        from . import logros
+        for i in range(3):
+            self.visita(self.resto, i)  #3 días distintos en el mismo sitio
+        self.visita(self.pizzeria, 0)
+        retos = {r['nombre']: r for r in logros.retos(logros.estadisticas(self.ana.perfil))}
+        self.assertTrue(retos['Primer sitio']['hecho'])
+        self.assertTrue(retos['Cliente fijo']['hecho'])
+        self.assertTrue(retos['Cambio de aires']['hecho'])
+        self.assertFalse(retos['Diez sitios']['hecho'])
+        self.assertEqual((retos['Diez sitios']['actual'], retos['Diez sitios']['porcentaje']), (2, 20))
+        self.entrar(self.ana)
+        self.assertContains(self.client.get('/diario/retos/'), '¡Conseguido!')
+
+    def test_mes_goloso_solo_cuenta_este_mes(self):
+        from . import logros
+        hoy = date(2026, 11, 20)
+        for dia in (1, 2, 3, 4):
+            Visita.objects.create(perfil=self.ana.perfil, restaurante=self.resto, fecha=date(2026, 10, dia))
+        self.assertEqual(logros.estadisticas(self.ana.perfil, hoy=hoy)['visitas_este_mes'], 0)
+        self.assertEqual(logros.estadisticas(self.ana.perfil, hoy=date(2026, 10, 20))['visitas_este_mes'], 4)

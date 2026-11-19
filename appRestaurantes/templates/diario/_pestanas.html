@@ -1,0 +1,8 @@
+{# navegación entre las tres secciones personales #}
+<h1>Mi diario</h1>
+<p class="subtitulo">Solo lo ves tú. Se rellena con tus visitas confirmadas («He estado aquí» o «Estuve aquí» al reseñar).</p>
+<div class="vista-selector" role="group" aria-label="Secciones de mi diario" style="margin-bottom:18px">
+    {% if seccion == 'diario' %}<span class="activo" aria-current="true">Diario</span>{% else %}<a href="{% url 'diario' %}">Diario</a>{% endif %}
+    {% if seccion == 'pasaporte' %}<span class="activo" aria-current="true">Pasaporte</span>{% else %}<a href="{% url 'pasaporte' %}">Pasaporte</a>{% endif %}
+    {% if seccion == 'retos' %}<span class="activo" aria-current="true">Retos</span>{% else %}<a href="{% url 'mis_retos' %}">Retos</a>{% endif %}
+</div>

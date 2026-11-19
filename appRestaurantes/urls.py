@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views, views_social, views_colecciones, views_avisos, views_planes, views_historias
+from . import views, views_social, views_colecciones, views_avisos, views_planes, views_historias, views_diario
 
 #index y listas de listas y detalles de cada modelo 
 
@@ -63,6 +63,11 @@ urlpatterns = [
     path('restaurantes/<int:pk>/historia/nueva/', views_historias.crear_historia, name='crear_historia'),
     path('historias/<int:pk>/', views_historias.ver_historias, name='ver_historias'),  #pk = el autor
     path('historias/<int:pk>/borrar/', views_historias.borrar_historia, name='borrar_historia'),  #pk = la historia
+
+    #mi diario, pasaporte de sellos y retos (personales: salen de las visitas confirmadas)
+    path('diario/', views_diario.diario, name='diario'),
+    path('diario/pasaporte/', views_diario.pasaporte, name='pasaporte'),
+    path('diario/retos/', views_diario.mis_retos, name='mis_retos'),
 
     #avisos (notificaciones) del usuario
     path('avisos/', views_avisos.avisos, name='avisos'),

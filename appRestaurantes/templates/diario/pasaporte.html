@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Mi pasaporte{% endblock %}
+
+{% block contenido %}
+{% include 'diario/_pestanas.html' %}
+
+<div class="contadores">
+    <span><strong>{{ e.total_visitas }}</strong> visita{{ e.total_visitas|pluralize }}</span>
+    <span><strong>{{ e.n_restaurantes }}</strong> restaurante{{ e.n_restaurantes|pluralize }}</span>
+    <span><strong>{{ e.ciudades|length }}</strong> ciudad{{ e.ciudades|length|pluralize:",es" }}</span>
+    <span><strong>{{ e.cocinas|length }}</strong> de {{ e.posibles_cocinas }} cocinas</span>
+</div>
+
+<h2>Ciudades</h2>
+<div class="sellos">
+    {% for c in e.ciudades %}
+    <a class="sello" href="{% url 'detalle_ciudad' c.ciudad.id %}">
+        <span class="sello-nombre">{{ c.ciudad.nombre }}</span>
+        <span class="meta">{{ c.restaurantes|length }} sitio{{ c.restaurantes|length|pluralize }} · desde {{ c.primera|date:"j M Y" }}</span>
+    </a>
+    {% empty %}<p class="suave">Todavía no tienes sellos de ciudades.</p>{% endfor %}
+</div>
+
+<h2>Comunidades ({{ e.comunidades|length }} de {{ e.posibles_comunidades }})</h2>
+<div class="sellos">
+    {% for c in e.comunidades %}
+    <div class="sello">
+        <span class="sello-nombre">{{ c.nombre }}</span>
+        <span class="meta">desde {{ c.primera|date:"j M Y" }}</span>
+    </div>
+    {% empty %}<p class="suave">Todavía no tienes sellos de comunidades.</p>{% endfor %}
+</div>
+
+<h2>Cocinas ({{ e.cocinas|length }} de {{ e.posibles_cocinas }})</h2>
+<div class="sellos">
+    {% for c in e.cocinas %}
+    <div class="sello">
+        <img src="{% static 'img/cocinas/'|add:c.clave|add:'.svg' %}" alt="" width="44" height="44" loading="lazy">
+        <span class="sello-nombre">{{ c.nombre }}</span>
+        <span class="meta">{{ c.restaurantes|length }} sitio{{ c.restaurantes|length|pluralize }}</span>
+    </div>
+    {% empty %}<p class="suave">Todavía no tienes sellos de cocinas.</p>{% endfor %}
+</div>
+
+<p class="meta nota-mapa">Los sellos salen de tus visitas confirmadas. Si borras una visita, desaparece su sello.</p>
+{% endblock %}

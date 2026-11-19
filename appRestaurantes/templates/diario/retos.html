@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Mis retos{% endblock %}
+
+{% block contenido %}
+{% include 'diario/_pestanas.html' %}
+
+<p><strong>{{ hechos }}</strong> de {{ retos|length }} retos conseguidos.</p>
+
+<ul class="lista-avisos">
+    {% for r in retos %}
+    <li class="aviso-fila {% if r.hecho %}nuevo{% endif %}">
+        <div style="flex:1">
+            <strong>{{ r.nombre }}</strong> {% if r.hecho %}<span class="etiqueta si">¡Conseguido!</span>{% endif %}
+            <div class="meta">{{ r.descripcion }}</div>
+            <div class="barra-reto" role="progressbar" aria-valuenow="{{ r.actual }}" aria-valuemin="0" aria-valuemax="{{ r.objetivo }}" aria-label="{{ r.nombre }}">
+                <span style="width: {{ r.porcentaje }}%"></span>
+            </div>
+            <div class="meta">{{ r.actual }} de {{ r.objetivo }}</div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

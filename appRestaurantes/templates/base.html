@@ -29,6 +29,7 @@
                 <a class="enlace {% if pagina == 'mapa' %}activo{% endif %}" href="{% url 'mapa' %}">{% include 'icono.html' with n='mapa' %}Mapa</a>
                 <a class="enlace {% if pagina == 'lista_perfiles' %}activo{% endif %}" href="{% url 'lista_perfiles' %}">{% include 'icono.html' with n='gente' %}Gente</a>
                 {% if user.is_authenticated and user.perfil %}
+                <a class="enlace {% if pagina == 'diario' or pagina == 'pasaporte' or pagina == 'mis_retos' %}activo{% endif %}" href="{% url 'diario' %}">{% include 'icono.html' with n='diario' %}Mi diario</a>
                 <a class="enlace {% if 'plan' in pagina %}activo{% endif %}" href="{% url 'mis_planes' %}">{% include 'icono.html' with n='plan' %}Planes</a>
                 <a class="enlace {% if pagina == 'avisos' %}activo{% endif %}" href="{% url 'avisos' %}">{% include 'icono.html' with n='campana' %}Avisos{% if avisos_sin_leer %}<span class="insignia" aria-label="{{ avisos_sin_leer }} sin leer">{{ avisos_sin_leer }}</span>{% endif %}</a>
                 <a class="enlace {% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}" href="{% url 'detalle_perfil' user.perfil.id %}">{% include 'icono.html' with n='perfil' %}Mi perfil</a>

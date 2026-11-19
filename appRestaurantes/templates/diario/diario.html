@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Mi diario{% endblock %}
+
+{% block contenido %}
+{% include 'diario/_pestanas.html' %}
+
+{% for mes, visitas in meses %}
+<h2>{{ mes|date:"F Y"|capfirst }}</h2>
+<ul class="lista-avisos">
+    {% for v in visitas %}
+    <li class="aviso-fila">
+        <div style="flex:1">
+            <strong>{{ v.fecha|date:"l j" }}</strong> ·
+            <a href="{% url 'detalle_restaurante' v.restaurante.id %}">{{ v.restaurante.nombre }}</a>
+            <div class="meta">{{ v.restaurante.tipo_cocina }} · {{ v.restaurante.ciudad.nombre }}
+                {% if v.mi_resena %}· <a href="{% url 'detalle_resena' v.mi_resena.id %}">mi reseña ({{ v.mi_resena.puntuacion }}★)</a>
+                {% else %}· <a href="{% url 'crear_resena' v.restaurante.id %}">escribir reseña</a>{% endif %}
+            </div>
+        </div>
+        <form method="post" action="{% url 'borrar_visita' v.id %}" onsubmit="return confirm('¿Borrar esta visita de tu diario?')">
+            {% csrf_token %}<input type="hidden" name="next" value="{% url 'diario' %}">
+            <button class="boton-texto" type="submit" aria-label="Borrar la visita a {{ v.restaurante.nombre }}">Borrar</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% empty %}
+<div class="tarjeta">
+    <p>Tu diario está vacío. Entra en la ficha de un restaurante y pulsa «Confirmar visita» cuando hayas estado, o marca «Estuve aquí» al escribir una reseña.</p>
+    <a class="boton" href="{% url 'lista_restaurantes' %}">Buscar restaurantes</a>
+</div>
+{% endfor %}
+
+{% if lista.paginator.num_pages > 1 %}
+<nav class="paginacion">
+    {% if lista.has_previous %}<a class="boton boton-secundario" href="?page={{ lista.previous_page_number }}">← Más recientes</a>{% endif %}
+    <span class="meta">Página {{ lista.number }} de {{ lista.paginator.num_pages }} · {{ total }} visitas</span>
+    {% if lista.has_next %}<a class="boton boton-secundario" href="?page={{ lista.next_page_number }}">Más antiguas →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

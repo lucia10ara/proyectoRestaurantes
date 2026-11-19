@@ -18,6 +18,7 @@
             <!-- seguir / dejar de seguir: solo si hay sesión y no es mi propio perfil -->
             {% if es_el_mio %}
                 <span class="etiqueta">Este es tu perfil</span>
+                <a class="boton boton-secundario boton-peque" href="{% url 'diario' %}">{% include 'icono.html' with n='diario' %}Mi diario</a>
             {% elif user.is_authenticated %}
                 <form method="post" action="{% url 'seguir' perfil.id %}">
                     {% csrf_token %}
