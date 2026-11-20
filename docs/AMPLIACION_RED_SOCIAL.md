@@ -64,8 +64,14 @@ grupos, accesible y `fecha_alta` en `Restaurante`.
 - **Mapa.** La página pide por AJAX (`/mapa/datos/`) solo los restaurantes de la zona visible, con un máximo de 400, y avisa
   si hay más. Los nombres se pintan con `textContent` (nunca como HTML). OpenStreetMap exige el encabezado Referer, por eso
   `mapa.js` fija `referrerPolicy`. La ubicación del usuario solo se pide al pulsar «Cerca de mí» y no se guarda.
-- **Historias.** Dejan de verse solas a las 24 h (la consulta filtra por `caduca`). Para liberar los archivos hay que ejecutar
-  `python manage.py limpiar_historias`, a mano o programado cada día. Máximo 10 activas por persona.
+- **Historias.** Dejan de verse solas a las 24 h (la consulta filtra por `caduca`) y las caducadas se borran, con sus archivos,
+  cada vez que alguien publica una historia (también se puede forzar con `python manage.py limpiar_historias`).
+  Máximo 10 activas por persona.
+- **Planes.** El creador puede cambiar la hora o el mensaje. Si cambia la hora, quienes habían dicho «voy» vuelven a «sin
+  responder» y todos reciben un aviso. Un plan cancelado o ya pasado no se edita.
+- **«Han estado».** Las tarjetas y el mapa enseñan qué gente a la que sigues ha estado (solo visitas confirmadas), con una
+  consulta por página. En el mapa, esos puntos salen más oscuros.
+- **Móvil.** La barra de abajo tiene Inicio, Explorar, Publicar, Descubre y Menú; el Menú (`/menu/`) reúne el resto.
 - **Para ti.** Suma puntos por lo que recomiendan (4 o 5 estrellas) las personas a las que sigues, por la cocina que te gusta
   en tu ciudad y por la nota. Nunca incluye lo ya visitado, guardado o reseñado, respeta «con niños» y «con perro», y excluye
   los mal valorados. Si no hay nada que cruzar, enseña los mejor valorados de tu ciudad.
@@ -89,13 +95,12 @@ grupos, accesible y `fecha_alta` en `Restaurante`.
 
 ## 6. Pruebas y datos
 
-- `python manage.py test appRestaurantes` ejecuta las 91 pruebas automáticas, con una base de datos temporal.
+- `python manage.py test appRestaurantes` ejecuta las 102 pruebas automáticas, con una base de datos temporal.
 - Antes de cada migración se hizo una copia de la base de datos (`db_copia_antes_bloqueN.sqlite3`, fuera de git).
 - Datos reales: 62.962 restaurantes importados, de los que 62.636 tienen coordenadas y salen en el mapa (a 20 nov 2026); ninguno tiene todavía precio y unos 8.400 tienen el dato de terraza.
 
 ## 7. Límites conocidos
 
 - Los restaurantes sin coordenadas no salen en el mapa hasta que se les ponga ubicación (la administradora puede hacerlo).
-- Los planes no se pueden editar: se cancelan y se crea otro.
-- No hay avisos por «me gusta» (decisión para no saturar); sí por seguidor, comentario y planes.
+- Los avisos son por seguidor, comentario, me gusta (uno por persona y foto) y planes.
 - El diario, el pasaporte y los retos son personales: no hay versión pública.

@@ -13,6 +13,9 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('registro/', views.registro, name='registro'),
 
+    #menú completo (sobre todo para el móvil)
+    path('menu/', views.menu_movil, name='menu'),
+
     #explorar: rejilla de fotos con filtros (como el explorar de instagram)
     path('explorar/', views.explorar, name='explorar'),
 

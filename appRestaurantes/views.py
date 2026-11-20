@@ -59,6 +59,11 @@ def perfil_actual(request):
     return None
 
 
+#Menú completo para el móvil (la barra de abajo no cabe todo, y el menú lateral solo existe en ordenador)
+def menu_movil(request):
+    return render(request, 'menu.html')
+
+
 #Registro: crea el usuario y su perfil, y lo deja con la sesión iniciada
 def registro(request):
     if request.user.is_authenticated:
@@ -250,6 +255,8 @@ def con_ubicacion(request):
 def mapa(request):
     """Página del mapa: los mismos filtros que la lista de restaurantes. Los puntos los pide el JavaScript a mapa_datos."""
     yo = perfil_actual(request)
+    if not request.GET and yo and yo.ciudad_id:  #sin filtros: en su ciudad (con ?ciudad= vacío se ve todo)
+        return redirect(f"{reverse('mapa')}?ciudad={yo.ciudad_id}")
     filtros = {k: v for k, v in request.GET.items() if v and k != 'foco'}
     context = {
         **contexto_filtros(filtros, yo),

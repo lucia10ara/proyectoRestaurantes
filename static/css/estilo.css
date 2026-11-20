@@ -665,6 +665,18 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .amigos-estuvieron .icono { width: 14px; height: 14px; flex-shrink: 0; }
 .mapa-ficha-amigos { color: var(--azulejo); font-weight: 600; font-size: .8125rem; }
 
+/* móvil estrecho: el logo se acorta para que el buscador de arriba tenga sitio (antes quedaba reducido a un círculo) */
+@media (max-width: 480px) {
+    .barra-superior .logo-movil span { display: none; }
+    .buscador-barra { min-width: 0; }
+}
+.barra-movil a.con-insignia { position: relative; }
+.barra-movil a.con-insignia .insignia { position: absolute; top: -3px; right: 6px; margin: 0; padding: 0 5px; font-size: .625rem; }
+.menu-movil { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.menu-movil a, .menu-movil button { display: flex; align-items: center; gap: 14px; padding: 14px 16px; width: 100%; font: inherit; font-size: 1rem; text-align: left;
+    color: var(--tinta); background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-tarjeta); cursor: pointer; }
+.menu-movil a:hover { text-decoration: none; background: var(--papel); }
+
 /* ---------- Descubre ---------- */
 .motivos { margin: 0; font-style: italic; }
 .ruleta-resultado { margin-top: 24px; max-width: 420px; animation: aparece 380ms var(--ease-out); }

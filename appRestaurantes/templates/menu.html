@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Menú{% endblock %}
+
+{% block contenido %}
+
+<h1>Menú</h1>
+
+<nav class="menu-movil" aria-label="Todas las secciones">
+    {% if user.is_authenticated and user.perfil %}
+    <a href="{% url 'detalle_perfil' user.perfil.id %}">{% include 'icono.html' with n='perfil' %}Mi perfil</a>
+    <a href="{% url 'avisos' %}">{% include 'icono.html' with n='campana' %}Avisos{% if avisos_sin_leer %}<span class="insignia">{{ avisos_sin_leer }}</span>{% endif %}</a>
+    <a href="{% url 'diario' %}">{% include 'icono.html' with n='diario' %}Mi diario, pasaporte y retos</a>
+    <a href="{% url 'mis_planes' %}">{% include 'icono.html' with n='plan' %}Planes con amigos</a>
+    {% endif %}
+    <a href="{% url 'mapa' %}">{% include 'icono.html' with n='mapa' %}Mapa</a>
+    <a href="{% url 'lista_restaurantes' %}">{% include 'icono.html' with n='restaurantes' %}Restaurantes</a>
+    <a href="{% url 'lista_perfiles' %}">{% include 'icono.html' with n='gente' %}Gente</a>
+    {% if user.is_staff %}<a href="{% url 'panel' %}">{% include 'icono.html' with n='panel' %}Panel de administración</a>{% endif %}
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}<button type="submit">{% include 'icono.html' with n='salir' %}Cerrar sesión ({{ user.username }})</button>
+    </form>
+    {% else %}
+    <a href="{% url 'login' %}">{% include 'icono.html' with n='perfil' %}Iniciar sesión</a>
+    <a href="{% url 'registro' %}">{% include 'icono.html' with n='mas' %}Crear una cuenta</a>
+    {% endif %}
+</nav>
+
+{% endblock %}

@@ -414,6 +414,17 @@ class Historia(models.Model):
     def activas(cls):
         return cls.objects.filter(caduca__gt=timezone.now())
 
+    @classmethod
+    def borrar_caducadas(cls):
+        #borra las caducadas y sus archivos (ya no se veían; esto libera el espacio). Devuelve cuántas borró
+        n = 0
+        for historia in cls.objects.filter(caduca__lte=timezone.now()):
+            if historia.imagen:
+                historia.imagen.delete(save=False)
+            historia.delete()
+            n += 1
+        return n
+
     def visible_para(self, yo, usuario=None):
         #el autor, quien lo sigue y la administradora (y solo mientras no haya caducado)
         if self.caduca <= timezone.now():

@@ -497,11 +497,11 @@ class AvisosTests(Base):
         Notificacion.objects.create(destinatario=self.bea.perfil, tipo='seguidor', texto='aviso de bea')
         self.assertEqual(self.client.get('/avisos/').status_code, 302)  #sin sesión
         self.entrar(self.ana)
-        self.assertContains(self.client.get('/'), 'insignia')  #contador en el menú
+        self.assertContains(self.client.get('/'), 'sin leer')  #contador en el menú
         r = self.client.get('/avisos/')
         self.assertContains(r, 'bea te sigue')
         self.assertNotContains(r, 'aviso de bea')  #los de otro usuario no se ven
-        self.assertNotContains(self.client.get('/'), 'insignia')  #ya leído
+        self.assertNotContains(self.client.get('/'), 'sin leer')  #ya leído
         self.client.post('/avisos/borrar-leidos/')
         self.assertEqual(Notificacion.objects.filter(destinatario=self.ana.perfil).count(), 0)
         self.assertEqual(Notificacion.objects.filter(destinatario=self.bea.perfil).count(), 1)
@@ -1041,3 +1041,36 @@ class AmigosEnTarjetasTests(Base):
         self.entrar(self.ana)
         texto = self.client.get('/mapa/datos/', self.ZONA).json()['restaurantes'][0]['amigos']
         self.assertTrue(texto.endswith('y 2 más'), texto)  #4 personas: dos nombres y «2 más»
+
+
+class MejorasVariasTests(Base):
+    def test_mapa_sin_filtros_empieza_en_la_ciudad_del_usuario(self):
+        self.assertEqual(self.client.get('/mapa/').status_code, 200)  #sin sesión: todo
+        self.entrar(self.ana)  #su perfil tiene ciudad (Bilbao)
+        self.assertRedirects(self.client.get('/mapa/'), f'/mapa/?ciudad={self.ciudad.pk}')
+        self.assertEqual(self.client.get('/mapa/?ciudad=').status_code, 200)  #«todas las ciudades»: sin redirigir
+        self.assertEqual(self.client.get('/mapa/?foco=1').status_code, 200)  #desde «Ver en el mapa»: sin redirigir
+
+    def test_publicar_historia_limpia_las_caducadas(self):
+        vieja = Historia.objects.create(autor=self.bea.perfil, restaurante=self.resto, url='https://e.com/v.jpg')
+        Historia.objects.filter(pk=vieja.pk).update(caduca=timezone.now() - timedelta(hours=1))
+        self.entrar(self.ana)
+        self.client.post(reverse('crear_historia', args=[self.resto.pk]), {'url': 'https://e.com/n.jpg'})
+        self.assertFalse(Historia.objects.filter(pk=vieja.pk).exists())
+        self.assertEqual(Historia.objects.count(), 1)
+
+    def test_favicon_enlazado(self):
+        self.assertContains(self.client.get('/'), 'img/favicon.svg')
+
+    def test_menu_movil(self):
+        r = self.client.get('/menu/')
+        self.assertContains(r, 'Iniciar sesión')
+        self.assertNotContains(r, 'Mi diario')
+        self.entrar(self.ana)
+        r = self.client.get('/menu/')
+        for texto in ('Mi perfil', 'Avisos', 'Mi diario', 'Planes con amigos', 'Mapa', 'Cerrar sesión'):
+            self.assertContains(r, texto)
+        self.assertNotContains(r, 'Panel de administración')  #solo la administradora
+        self.entrar(self.admin)
+        self.assertContains(self.client.get('/menu/'), 'Panel de administración')
+        self.assertContains(self.client.get('/'), 'href="/menu/"')  #enlazado desde la barra de móvil

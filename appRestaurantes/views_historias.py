@@ -26,6 +26,7 @@ def crear_historia(request, pk):
         historia = form.save(commit=False)
         historia.autor, historia.restaurante = yo, restaurante
         historia.save()
+        Historia.borrar_caducadas()  #de paso, se limpian las caducadas de todos
         messages.success(request, 'Historia publicada: la verán tus seguidores durante 24 horas.')
         return redirect('ver_historias', pk=yo.pk)
     return render(request, 'formulario.html', {
