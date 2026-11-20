@@ -46,6 +46,7 @@
     </form>
     {% endif %}
     {% if es_creador and not plan.cancelado and not ya_paso %}
+    <a class="boton boton-secundario" href="{% url 'editar_plan' plan.id %}">{% include 'icono.html' with n='editar' %}Cambiar hora o mensaje</a>
     <form method="post" action="{% url 'cancelar_plan' plan.id %}" onsubmit="return confirm('¿Cancelar el plan? Se avisará a los invitados.')">
         {% csrf_token %}<button class="boton-peligro" type="submit">Cancelar plan</button>
     </form>

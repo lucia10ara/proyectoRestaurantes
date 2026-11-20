@@ -213,6 +213,13 @@ class PlanForm(forms.Form):
         return invitados
 
 
+#Editar un plan: solo se cambian el día y hora y el mensaje (los invitados no se tocan)
+class PlanEditarForm(PlanForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        del self.fields['invitados']
+
+
 #Visita confirmada: el usuario dice qué día estuvo (no puede ser en el futuro)
 class VisitaForm(forms.Form):
     fecha = forms.DateField(label='¿Qué día fuiste?', widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'))

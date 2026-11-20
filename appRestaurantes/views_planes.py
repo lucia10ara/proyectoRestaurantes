@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import PlanForm
+from .forms import PlanForm, PlanEditarForm
 from .models import Plan, Invitacion, Restaurante
 from .notificaciones import notificar
 from .views import perfil_actual
@@ -106,6 +106,35 @@ def responder_plan(request, pk):
                   reverse('detalle_plan', args=[pk]))
     messages.success(request, 'Respuesta guardada.')
     return redirect('detalle_plan', pk=pk)
+
+
+@login_required
+def editar_plan(request, pk):
+    """Cambiar el día/hora o el mensaje. Si cambia la hora, los que habían dicho «voy» vuelven a «sin responder»
+    (ya no saben si les viene bien) y todos reciben un aviso."""
+    plan = plan_visible(request, pk)
+    yo = perfil_o_403(request)
+    if plan.creador_id != yo.id:
+        raise PermissionDenied
+    if plan.cancelado or plan.cuando < timezone.now():
+        messages.error(request, 'Un plan cancelado o que ya pasó no se puede editar.')
+        return redirect('detalle_plan', pk=pk)
+    inicial = {'cuando': timezone.localtime(plan.cuando), 'mensaje': plan.mensaje}
+    form = PlanEditarForm(request.POST or None, initial=inicial)
+    if form.is_valid():
+        cambio_hora = form.cleaned_data['cuando'] != plan.cuando
+        plan.cuando, plan.mensaje = form.cleaned_data['cuando'], form.cleaned_data['mensaje'].strip()
+        plan.save(update_fields=['cuando', 'mensaje'])
+        if cambio_hora:
+            plan.invitaciones.filter(estado='si').update(estado='pendiente', respondida=None)
+            for inv in plan.invitaciones.select_related('perfil'):
+                notificar(inv.perfil, yo, 'plan', f'{yo} ha cambiado la hora del plan en {plan.restaurante.nombre}: ahora es el {cuando_texto(plan)}.',
+                          reverse('detalle_plan', args=[pk]))
+        messages.success(request, 'Plan actualizado.' + (' Les hemos avisado del cambio de hora.' if cambio_hora else ''))
+        return redirect('detalle_plan', pk=pk)
+    return render(request, 'formulario.html', {
+        'titulo': f'Editar el plan en {plan.restaurante.nombre}', 'form': form, 'boton': 'Guardar cambios',
+        'volver_texto': 'el plan', 'volver_url': 'detalle_plan', 'volver_pk': pk})
 
 
 @login_required

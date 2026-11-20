@@ -609,6 +609,46 @@ class PlanesTests(Base):
         self.assertEqual(Visita.objects.filter(perfil=self.bea.perfil).count(), 1)
 
 
+    def test_cambiar_la_hora_reinicia_respuestas_y_avisa(self):
+        self.crear()
+        plan = Plan.objects.get()
+        Invitacion.objects.filter(plan=plan).update(estado='si')
+        Notificacion.objects.all().delete()
+        self.entrar(self.ana)
+        self.client.post(reverse('editar_plan', args=[plan.pk]), {'cuando': self.manana(48), 'mensaje': 'Mejor pasado'})
+        plan.refresh_from_db()
+        self.assertEqual(plan.mensaje, 'Mejor pasado')
+        self.assertEqual(plan.invitaciones.get().estado, 'pendiente')  #tiene que volver a confirmar
+        self.assertTrue(Notificacion.objects.filter(destinatario=self.bea.perfil, texto__contains='cambiado la hora').exists())
+
+    def test_cambiar_solo_el_mensaje_no_toca_respuestas_ni_avisa(self):
+        self.crear()
+        plan = Plan.objects.get()
+        Invitacion.objects.filter(plan=plan).update(estado='si')
+        Notificacion.objects.all().delete()
+        self.entrar(self.ana)
+        hora = timezone.localtime(plan.cuando).strftime('%Y-%m-%dT%H:%M')
+        self.client.post(reverse('editar_plan', args=[plan.pk]), {'cuando': hora, 'mensaje': 'Solo el texto'})
+        plan.refresh_from_db()
+        self.assertEqual(plan.mensaje, 'Solo el texto')
+        self.assertEqual(plan.invitaciones.get().estado, 'si')
+        self.assertEqual(Notificacion.objects.count(), 0)
+
+    def test_permisos_y_estados(self):
+        self.crear()
+        plan = Plan.objects.get()
+        url = reverse('editar_plan', args=[plan.pk])
+        self.entrar(self.bea)
+        self.assertEqual(self.client.get(url).status_code, 403)  #invitada, no creadora
+        self.entrar(self.cai)
+        self.assertEqual(self.client.get(url).status_code, 404)  #ni lo ve
+        self.entrar(self.ana)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.post(url, {'cuando': self.manana(-3), 'mensaje': ''}).status_code, 200)  #pasado: vuelve al formulario con error
+        Plan.objects.filter(pk=plan.pk).update(cancelado=True)
+        self.assertRedirects(self.client.get(url), reverse('detalle_plan', args=[plan.pk]))
+
+
 class HistoriasTests(Base):
     """Bloque 5: historias de 24 horas."""
 

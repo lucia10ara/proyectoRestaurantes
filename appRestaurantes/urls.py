@@ -56,6 +56,7 @@ urlpatterns = [
     path('planes/', views_planes.mis_planes, name='mis_planes'),
     path('planes/<int:pk>/', views_planes.detalle_plan, name='detalle_plan'),
     path('planes/<int:pk>/responder/', views_planes.responder_plan, name='responder_plan'),
+    path('planes/<int:pk>/editar/', views_planes.editar_plan, name='editar_plan'),
     path('planes/<int:pk>/cancelar/', views_planes.cancelar_plan, name='cancelar_plan'),
     path('restaurantes/<int:pk>/plan/nuevo/', views_planes.crear_plan, name='crear_plan'),
 
