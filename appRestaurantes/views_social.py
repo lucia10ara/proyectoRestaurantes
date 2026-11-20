@@ -8,7 +8,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import ResenaForm, FotoForm, ComentarioForm, RestauranteForm, VisitaForm
-from .models import Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita
+from .models import Perfil, Restaurante, Resena, Foto, Comentario, Guardado, Visita, Notificacion
 from django.urls import reverse
 
 from .notificaciones import notificar
@@ -140,6 +140,10 @@ def like_foto(request, pk):
     ya_le_gusta = foto.likes.filter(pk=yo.pk).exists()
     if not ya_le_gusta:
         foto.likes.add(yo)
+        enlace = reverse('detalle_foto', args=[foto.pk])
+        #un solo aviso por persona y foto: si quita el me gusta y lo vuelve a poner no se repite
+        if not Notificacion.objects.filter(destinatario=foto.autor, actor=yo, tipo='like', url=enlace).exists():
+            notificar(foto.autor, yo, 'like', f'A {yo} le ha gustado tu foto de {foto.restaurante.nombre}.', enlace)
     elif request.POST.get('solo_like') != '1':  #el doble clic solo da me gusta, nunca lo quita
         foto.likes.remove(yo)
 

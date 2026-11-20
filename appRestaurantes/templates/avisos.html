@@ -5,7 +5,7 @@
 {% block contenido %}
 
 <h1>Avisos</h1>
-<p class="subtitulo">Invitaciones a planes, nuevos seguidores y comentarios.</p>
+<p class="subtitulo">Invitaciones a planes, nuevos seguidores, comentarios y me gusta.</p>
 
 {% if lista.paginator.count %}
 <form method="post" action="{% url 'avisos_borrar_leidos' %}" class="acciones">

@@ -426,7 +426,7 @@ class Historia(models.Model):
 class Notificacion(models.Model):
     #aviso para un usuario (invitación a un plan, nuevo seguidor, comentario...). El texto y el enlace se guardan ya escritos
     #para que sigan valiendo aunque después se borre lo que los originó
-    TIPOS = [('plan', 'Plan'), ('seguidor', 'Nuevo seguidor'), ('comentario', 'Comentario')]
+    TIPOS = [('plan', 'Plan'), ('seguidor', 'Nuevo seguidor'), ('comentario', 'Comentario'), ('like', 'Me gusta')]
     destinatario = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='notificaciones')
     actor = models.ForeignKey(Perfil, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')  #quien lo provoca
     tipo = models.CharField(max_length=12, choices=TIPOS)

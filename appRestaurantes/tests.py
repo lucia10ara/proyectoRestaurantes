@@ -988,3 +988,17 @@ class FotosTests(Base):
         form = FotoForm({'tipo': 'comida'}, {'imagen': grande}, restaurante=self.resto, autor=self.ana.perfil)
         self.assertFalse(form.is_valid())
         self.assertIn('pesa demasiado', str(form.errors))
+
+
+class AvisosLikeTests(Base):
+    def test_like_avisa_una_vez_y_no_a_uno_mismo(self):
+        foto = Foto.objects.create(restaurante=self.resto, autor=self.ana.perfil, url='https://e.com/a.jpg')
+        url = reverse('like_foto', args=[foto.pk])
+        self.entrar(self.ana)
+        self.client.post(url)  #le gusta su propia foto: sin aviso
+        self.assertEqual(Notificacion.objects.count(), 0)
+        self.entrar(self.bea)
+        self.client.post(url); self.client.post(url); self.client.post(url)  #like, quitar, like
+        avisos = Notificacion.objects.filter(destinatario=self.ana.perfil, tipo='like')
+        self.assertEqual(avisos.count(), 1)
+        self.assertIn('le ha gustado tu foto', avisos.get().texto)
