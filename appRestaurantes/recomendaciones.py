@@ -5,7 +5,7 @@ from collections import Counter
 from django.db.models import Avg, Count, Q
 from django.db.models.functions import Round
 
-from .models import Resena, Restaurante, con_foto_destacada
+from .models import Resena, Restaurante, Visita, con_foto_destacada
 
 #una joya oculta: muy bien valorada pero poco conocida (varias reseñas, no una sola)
 JOYA_MIN_RESENAS, JOYA_MAX_RESENAS, JOYA_MIN_MEDIA = 2, 10, 4.5
@@ -102,3 +102,26 @@ def ids_joyas():
     filas = (Resena.objects.values('restaurante_id').annotate(m=Avg('puntuacion'), n=Count('id'))
              .filter(n__gte=JOYA_MIN_RESENAS, n__lte=JOYA_MAX_RESENAS, m__gte=JOYA_MIN_MEDIA))
     return [f['restaurante_id'] for f in filas]
+
+
+def amigos_por_restaurante(yo, ids):
+    """{id de restaurante: 'ana, bea y 2 más'} con la gente a la que sigo que HA ESTADO (visita confirmada).
+    Una sola consulta. Vacío si no hay sesión o no sigo a nadie."""
+    ids = list(ids)
+    if not yo or not ids:
+        return {}
+    filas = (Visita.objects.filter(restaurante_id__in=ids, perfil__in=yo.siguiendo.all())
+             .order_by('-fecha').values_list('restaurante_id', 'perfil__usuario__username'))
+    nombres = {}
+    for rid, nombre in filas:
+        nombres.setdefault(rid, []).append(nombre)
+    return {rid: lista_nombres(n) for rid, n in nombres.items()}
+
+
+def anotar_amigos(yo, restaurantes):
+    """Pone r.amigos_estuvieron en cada restaurante de la lista (para las tarjetas). Devuelve la misma lista."""
+    restaurantes = list(restaurantes)
+    por_id = amigos_por_restaurante(yo, [r.id for r in restaurantes])
+    for r in restaurantes:
+        r.amigos_estuvieron = por_id.get(r.id, '')
+    return restaurantes

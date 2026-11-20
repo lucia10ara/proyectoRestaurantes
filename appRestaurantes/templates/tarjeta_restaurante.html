@@ -24,6 +24,8 @@
         </p>
 
         <!-- solo lo que distingue al sitio: casi todos admiten niños (es el valor por defecto), así que solo se marca el perro -->
+        {% if r.amigos_estuvieron %}<p class="meta amigos-estuvieron">{% include 'icono.html' with n='visita' %}Han estado: {{ r.amigos_estuvieron }}</p>{% endif %}
+
         {% if r.admite_perros %}
         <div class="etiquetas"><span class="etiqueta">Se puede ir con perro</span></div>
         {% endif %}

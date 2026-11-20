@@ -661,6 +661,10 @@ h1, h2 { font-weight: 700; letter-spacing: -0.01em; }
 .aviso-fila { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-tarjeta); }
 .aviso-fila.nuevo { border-color: var(--azulejo); background: var(--azulejo-suave); }
 
+.amigos-estuvieron { display: flex; align-items: center; gap: 5px; margin: 6px 0 0; color: var(--azulejo); font-weight: 600; }
+.amigos-estuvieron .icono { width: 14px; height: 14px; flex-shrink: 0; }
+.mapa-ficha-amigos { color: var(--azulejo); font-weight: 600; font-size: .8125rem; }
+
 /* ---------- Descubre ---------- */
 .motivos { margin: 0; font-style: italic; }
 .ruleta-resultado { margin-top: 24px; max-width: 420px; animation: aparece 380ms var(--ease-out); }

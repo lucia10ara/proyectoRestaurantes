@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 
 from .filtros import filtrar, contexto_filtros, entero
 from .models import Alergeno, Restaurante
-from .recomendaciones import para_ti as calcular_para_ti, ids_joyas, con_notas
+from .recomendaciones import para_ti as calcular_para_ti, ids_joyas, con_notas, anotar_amigos
 from .views import perfil_actual, lista_comunidades, ciudades_principales
 from .views_social import perfil_o_403
 
@@ -29,10 +29,16 @@ def descubre(request):
     return redirect('para_ti' if request.user.is_authenticated else 'novedades')
 
 
+def recomendados_con_amigos(yo):
+    lista = calcular_para_ti(yo)
+    anotar_amigos(yo, [r for r, _ in lista])  #pone el atributo en los mismos objetos
+    return lista
+
+
 @login_required
 def para_ti(request):
     yo = perfil_o_403(request)
-    return render(request, 'descubre/para_ti.html', {'seccion': 'para_ti', 'recomendados': calcular_para_ti(yo), 'yo': yo})
+    return render(request, 'descubre/para_ti.html', {'seccion': 'para_ti', 'recomendados': recomendados_con_amigos(yo), 'yo': yo})
 
 
 def listado(request, seccion, qs, titulo, ayuda, orden):
@@ -41,6 +47,7 @@ def listado(request, seccion, qs, titulo, ayuda, orden):
     filtros = {k: v for k, v in request.GET.items() if v and k != 'page'}
     qs = con_notas(filtrar(qs, filtros, yo)).order_by(*orden)
     pagina = Paginator(qs, 24).get_page(request.GET.get('page'))
+    pagina.object_list = anotar_amigos(yo, pagina)
     return render(request, 'descubre/lista.html', {
         **contexto_con_filtros(request, yo, filtros), 'seccion': seccion, 'lista': pagina, 'titulo': titulo, 'ayuda': ayuda})
 
@@ -79,6 +86,7 @@ def ruleta(request):
             if hay:
                 pk = qs.order_by('pk')[random.randrange(hay)].pk  #posición al azar, sin ordenar toda la tabla
                 elegido = con_notas(Restaurante.objects.filter(pk=pk)).first()
+                anotar_amigos(yo, [elegido])
             else:
                 aviso = 'No hay ningún restaurante con esos filtros. Prueba con menos.'
     otra_vez = urlencode({**filtros, 'girar': 1, **({'excluir': elegido.pk} if elegido else {})})

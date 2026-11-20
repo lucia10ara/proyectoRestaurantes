@@ -45,6 +45,7 @@
         d.appendChild(titulo);
         d.appendChild(texto('div', 'meta', r.cocina + ' · ' + r.ciudad));
         if (r.direccion) d.appendChild(texto('div', 'meta', r.direccion));
+        if (r.amigos) d.appendChild(texto('div', 'mapa-ficha-amigos', '✓ Han estado: ' + r.amigos));
         d.appendChild(texto('div', 'mapa-ficha-nota',
             r.media !== null ? '★ ' + r.media.toFixed(1).replace('.', ',') + ' (' + r.resenas + ' reseña' + (r.resenas === 1 ? '' : 's') + ')'
                              : 'Todavía sin reseñas'));
@@ -62,7 +63,8 @@
         marcadores = {};
         datos.restaurantes.forEach(function (r) {
             var m = L.circleMarker([r.lat, r.lon], {
-                radius: 8, weight: 2, color: '#3A2418', fillColor: '#D2BBA0', fillOpacity: 0.95
+                radius: 8, weight: 2, color: '#3A2418', fillOpacity: 0.95,
+                fillColor: r.amigos ? '#3A2418' : '#D2BBA0'  // oscuro = ha estado alguien a quien sigo
             });
             m.bindPopup(function () { return ventana(r); });
             marcadores[r.id] = m;

@@ -1002,3 +1002,42 @@ class AvisosLikeTests(Base):
         avisos = Notificacion.objects.filter(destinatario=self.ana.perfil, tipo='like')
         self.assertEqual(avisos.count(), 1)
         self.assertIn('le ha gustado tu foto', avisos.get().texto)
+
+
+class AmigosEnTarjetasTests(Base):
+    """«Han estado» (solo visitas confirmadas de gente a la que sigo) en las tarjetas y en el mapa."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.cai = cls.usuario('cai')
+        cls.resto.latitud, cls.resto.longitud = 43.26, -2.93
+        cls.resto.save()
+        cls.ana.perfil.siguiendo.add(cls.bea.perfil)  #ana sigue a bea, no a cai
+
+    ZONA = {'sur': 43, 'norte': 44, 'oeste': -3.5, 'este': -2.5}
+
+    def test_se_ve_en_lista_y_mapa_solo_con_visita_de_alguien_que_sigo(self):
+        Visita.objects.create(perfil=self.cai.perfil, restaurante=self.resto, fecha=date.today())  #cai: no la sigue
+        Guardado.objects.create(perfil=self.bea.perfil, restaurante=self.resto)  #guardar no es haber estado
+        self.entrar(self.ana)
+        self.assertNotContains(self.client.get('/restaurantes/'), 'Han estado')
+        self.assertEqual(self.client.get('/mapa/datos/', self.ZONA).json()['restaurantes'][0]['amigos'], '')
+        Visita.objects.create(perfil=self.bea.perfil, restaurante=self.resto, fecha=date.today())
+        self.assertContains(self.client.get('/restaurantes/'), 'Han estado: bea')
+        self.assertEqual(self.client.get('/mapa/datos/', self.ZONA).json()['restaurantes'][0]['amigos'], 'bea')
+
+    def test_sin_sesion_no_hay_amigos(self):
+        Visita.objects.create(perfil=self.bea.perfil, restaurante=self.resto, fecha=date.today())
+        self.assertNotContains(self.client.get('/restaurantes/'), 'Han estado')
+        self.assertEqual(self.client.get('/mapa/datos/', self.ZONA).json()['restaurantes'][0]['amigos'], '')
+
+    def test_varios_amigos_se_resumen(self):
+        for nombre in ('dani', 'eli', 'fer'):
+            u = self.usuario(nombre)
+            self.ana.perfil.siguiendo.add(u.perfil)
+            Visita.objects.create(perfil=u.perfil, restaurante=self.resto, fecha=date.today())
+        Visita.objects.create(perfil=self.bea.perfil, restaurante=self.resto, fecha=date.today())
+        self.entrar(self.ana)
+        texto = self.client.get('/mapa/datos/', self.ZONA).json()['restaurantes'][0]['amigos']
+        self.assertTrue(texto.endswith('y 2 más'), texto)  #4 personas: dos nombres y «2 más»

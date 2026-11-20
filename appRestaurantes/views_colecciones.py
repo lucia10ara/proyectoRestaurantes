@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import ColeccionForm
 from .models import Coleccion, ElementoColeccion, Perfil, Restaurante, Resena, con_foto_destacada
+from .recomendaciones import anotar_amigos
 from .views import perfil_actual
 from .views_social import perfil_o_403, volver
 
@@ -80,6 +81,7 @@ def detalle_coleccion(request, pk):
     elementos = list(coleccion.elementos.all())
     ids = [e.restaurante_id for e in elementos]
     restaurantes = {r.id: r for r in con_foto_destacada(Restaurante.objects.filter(id__in=ids)).select_related('ciudad')}
+    anotar_amigos(yo, restaurantes.values())
     notas = {n['restaurante_id']: n for n in Resena.objects.filter(restaurante_id__in=ids)
              .values('restaurante_id').annotate(media=Avg('puntuacion'), n=Count('id'))}
     for e in elementos:  #lo que necesita la tarjeta de restaurante: media, número de reseñas y estrellas

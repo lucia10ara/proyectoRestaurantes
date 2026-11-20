@@ -14,6 +14,7 @@ from .filtros import filtrar, contexto_filtros
 from .forms import RegistroForm, VisitaForm
 from .models import Perfil, Ciudad, Restaurante, Resena, Foto, Alergeno, Visita, Guardado, Notificacion, Historia, con_foto_destacada
 from .notificaciones import notificar
+from .recomendaciones import anotar_amigos, amigos_por_restaurante
 
 # Create your views here.
 
@@ -211,6 +212,7 @@ def lista_restaurantes(request):
 
     #paginación: 24 por página (con decenas de miles de restaurantes no se pueden pintar todos de golpe)
     page_obj = Paginator(restaurantes, 24).get_page(request.GET.get('page'))
+    page_obj.object_list = anotar_amigos(yo, page_obj)  #«han estado: ...» en cada tarjeta
     filtros = {k: v for k, v in request.GET.items() if v and k != 'page'}
 
     context = {
@@ -286,6 +288,7 @@ def mapa_datos(request):
 
     total = qs.count()
     lista = list(qs.select_related('ciudad').order_by('pk')[:LIMITE_MAPA])
+    amigos = amigos_por_restaurante(perfil_actual(request), [r.id for r in lista])
     notas = {f['restaurante_id']: f for f in Resena.objects.filter(restaurante__in=lista)
              .values('restaurante_id').annotate(media=Avg('puntuacion'), n=Count('id'))}
     return JsonResponse({
@@ -295,6 +298,7 @@ def mapa_datos(request):
             'direccion': r.direccion_visible, 'lat': r.latitud, 'lon': r.longitud,
             'media': round(notas[r.id]['media'], 1) if r.id in notas else None,
             'resenas': notas[r.id]['n'] if r.id in notas else 0,
+            'amigos': amigos.get(r.id, ''),  #quién de los que sigo ha estado (vacío si nadie)
             'url': reverse('detalle_restaurante', args=[r.id]),
         } for r in lista],
     })
