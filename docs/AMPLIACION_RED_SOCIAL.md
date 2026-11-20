@@ -91,7 +91,7 @@ grupos, accesible y `fecha_alta` en `Restaurante`.
 
 - `python manage.py test appRestaurantes` ejecuta las 91 pruebas automáticas, con una base de datos temporal.
 - Antes de cada migración se hizo una copia de la base de datos (`db_copia_antes_bloqueN.sqlite3`, fuera de git).
-- Datos reales: unos 62.900 restaurantes importados, de los que unos 54.700 tienen coordenadas y salen en el mapa.
+- Datos reales: 62.962 restaurantes importados, de los que 62.636 tienen coordenadas y salen en el mapa (a 20 nov 2026); ninguno tiene todavía precio y unos 8.400 tienen el dato de terraza.
 
 ## 7. Límites conocidos
 
