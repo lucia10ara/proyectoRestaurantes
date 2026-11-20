@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block titulo %}Restaurantes de España{% endblock %}</title>
 
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+
     <!-- hoja de estilos común a toda la web (está en la carpeta static/css) -->
     <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 </head>
@@ -103,12 +105,9 @@
         <a href="{% url 'index' %}" class="{% if pagina == 'index' %}activo{% endif %}">{% include 'icono.html' with n='inicio' %}Inicio</a>
         <a href="{% url 'explorar' %}" class="{% if pagina == 'explorar' %}activo{% endif %}">{% include 'icono.html' with n='explorar' %}Explorar</a>
         <a href="{% url 'publicar' %}" class="publicar-movil" aria-label="Publicar">{% include 'icono.html' with n='mas' %}</a>
-        <a href="{% url 'lista_perfiles' %}" class="{% if pagina == 'lista_perfiles' %}activo{% endif %}">{% include 'icono.html' with n='gente' %}Gente</a>
-        {% if user.is_authenticated and user.perfil %}
-        <a href="{% url 'detalle_perfil' user.perfil.id %}" class="{% if pagina == 'detalle_perfil' and request.resolver_match.kwargs.pk == user.perfil.id %}activo{% endif %}">{% include 'icono.html' with n='perfil' %}Yo</a>
-        {% else %}
-        <a href="{% url 'login' %}">{% include 'icono.html' with n='perfil' %}Entrar</a>
-        {% endif %}
+        <a href="{% url 'descubre' %}" class="{% if pagina == 'descubre' or pagina == 'para_ti' or pagina == 'novedades' or pagina == 'joyas' or pagina == 'ruleta' %}activo{% endif %}">{% include 'icono.html' with n='descubre' %}Descubre</a>
+        <!-- Menú: todo lo demás (mapa, planes, diario, avisos, perfil...) -->
+        <a href="{% url 'menu' %}" class="con-insignia {% if pagina == 'menu' %}activo{% endif %}">{% include 'icono.html' with n='menu' %}Menú{% if avisos_sin_leer %}<span class="insignia">{{ avisos_sin_leer }}</span>{% endif %}</a>
     </nav>
 
     {% endwith %}
